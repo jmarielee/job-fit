@@ -1416,7 +1416,8 @@ Ensure every string is clean plain text. Keep descriptions under 180 characters.
       throw new Error("Diagnostic report generated empty content payload.");
     }
 
-    const parsedData = JSON.parse(rawText.trim());
+    const cleaned = rawText.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/,'');
+    const parsedData = JSON.parse(cleaned);
     render(parsedData);
     finishStepper();
 
