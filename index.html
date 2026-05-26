@@ -897,9 +897,9 @@
 
 <div class="container">
   <div class="header">
-    <p class="header-eyebrow">Intel Dossier // Adversarial Alignment</p>
-    <h1>Will you <em>actually</em><br>survive this loop?</h1>
-    <p class="header-sub">An uncompromising diagnostic assessment mapping your technical credibility against the true competitive bar, potential political landmines, and critical evaluators.</p>
+    <p class="header-eyebrow">Job Fit Report // Honest Assessment</p>
+    <h1>Will you <em>actually</em><br>get this job?</h1>
+    <p class="header-sub">Paste the job description and your resume. Get an honest, unfiltered breakdown of your real chances — where you're strong, where you'll get cut, and exactly what to fix before you apply.</p>
   </div>
 
   <!-- STAGE 1: RAW INGEST -->
@@ -925,15 +925,15 @@
       </div>
     </div>
 
-    <p class="trust-note">Security Classification: Active Candidacy Evaluation</p>
+    <p class="trust-note">Your inputs stay in your browser — nothing is stored or shared</p>
     <div class="intake">
       <div class="intake-card">
-        <label>Target Job Specifications</label>
-        <textarea id="jdInput" placeholder="Paste the exact target job description / expectations text…"></textarea>
+        <label>The Job Description</label>
+        <textarea id="jdInput" placeholder="Paste the full job posting here…"></textarea>
       </div>
       <div class="intake-card">
-        <label>Your Candidate Profile (Resume)</label>
-        <textarea id="resumeInput" placeholder="Paste your raw experience details / resume block…"></textarea>
+        <label>Your Resume</label>
+        <textarea id="resumeInput" placeholder="Paste your resume or experience here…"></textarea>
       </div>
     </div>
 
@@ -942,7 +942,7 @@
         <div class="spinner"></div>
         <span class="btn-label">Analyze Target</span>
       </button>
-      <span class="run-hint">Inference engine: ~20–40 seconds</span>
+      <span class="run-hint">Takes about 20–40 seconds</span>
     </div>
 
     <div id="errorBox"><div class="error-inner" id="errorText"></div></div>
@@ -965,32 +965,32 @@
   <!-- STAGE 3: INTERCEPT DOSSIER -->
   <div id="stage-result">
     <div class="stage-result-nav">
-      <button class="btn-reset" onclick="resetToInput()">← Rescan Profile</button>
+      <button class="btn-reset" onclick="resetToInput()">← Run a New Analysis</button>
     </div>
     
     <div id="results">
 
       <!-- RAW SCORE METRICS -->
       <div class="result-section" id="section-hero">
-        <p class="trust-note">Intelligence Report: High-Fidelity Gap Analysis</p>
+        <p class="trust-note">Your Job Fit Report</p>
         <div class="score-hero" id="scoreHero">
           <div class="score-ring-outer">
             <svg class="score-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
               <circle class="score-track" cx="60" cy="60" r="55"/>
               <circle class="score-arc" id="scoreArc" cx="60" cy="60" r="55"/>
               <text class="score-svg-num" id="scoreNum" x="60" y="56" text-anchor="middle" dominant-baseline="middle">—</text>
-              <text class="score-svg-sub" x="60" y="78" text-anchor="middle">SURVIVABILITY</text>
+              <text class="score-svg-sub" x="60" y="78" text-anchor="middle">YOUR ODDS</text>
             </svg>
           </div>
           <div class="score-meta">
             <div class="score-rec-badge" id="scoreRecBadge"><span class="score-badge-dot"></span><span id="scoreRecText">—</span></div>
             <div class="score-verdict" id="scoreVerdict">—</div>
-            <div class="score-angle-label">Command Alignment Strategy</div>
+            <div class="score-angle-label">Your Best Angle Into This Role</div>
             <div class="score-angle" id="scoreAngle"></div>
             <div class="meta-chips" id="scoreMetaChips"></div>
             <div class="score-meta-grid">
               <div class="score-meta-item">
-                <span class="score-meta-label">Primary Hook</span>
+                <span class="score-meta-label">The One Thing Working In Your Favor</span>
                 <span class="score-meta-text" id="scoreHook"></span>
               </div>
             </div>
@@ -998,10 +998,10 @@
         </div>
         
         <div class="bestpath-card" id="bestPathCard" style="display:none">
-          <div class="bestpath-label">Tactical Access Path</div>
+          <div class="bestpath-label">Your Best Way In</div>
           <div class="bestpath-path" id="bestPathPath"></div>
           <div class="bestpath-reason" id="bestPathReason"></div>
-          <div class="bestpath-move-label">Immediate Tactical Action</div>
+          <div class="bestpath-move-label">Do This First</div>
           <div class="bestpath-move" id="bestPathFirstMove"></div>
         </div>
       </div>
@@ -1010,9 +1010,9 @@
       <div class="result-section" id="section-benchmark" style="display:none">
         <div class="section-label">
           <span class="section-chip">01</span>
-          <span class="section-title">Calibration Target Profile</span>
+          <span class="section-title">Who You're Actually Competing Against</span>
         </div>
-        <p class="bench-intro">The target candidate profile typically dominating the competitive landscape.</p>
+        <p class="bench-intro">This is the typical candidate who gets the job. Here's how you stack up.</p>
         <div class="bench-card">
           <div>
             <div class="bench-title" id="benchTitle"></div>
@@ -1020,24 +1020,24 @@
           </div>
           <div class="bench-compare">
             <div class="bench-col compete">
-              <div class="bench-col-label">Shared Competitive Space</div>
+              <div class="bench-col-label">Where You Can Compete</div>
               <div id="benchCompete"></div>
             </div>
             <div class="bench-col lag">
-              <div class="bench-col-label">Vulnerable Deficit Zones</div>
+              <div class="bench-col-label">The Gap You Need to Close</div>
               <div id="benchLag"></div>
             </div>
           </div>
           <div>
-            <div class="bench-block-label">Typical Market Signals Generated by Winners</div>
+            <div class="bench-block-label">What Winning Candidates Usually Have</div>
             <div id="benchSignals"></div>
           </div>
           <div>
-            <div class="bench-block-label">Market Reality & Supply Realities</div>
+            <div class="bench-block-label">The Honest Market Reality</div>
             <div class="bench-reality-text" id="benchReality"></div>
           </div>
           <div class="bench-upgrade">
-            <div class="bench-upgrade-label">Highest Leverage Upgrade Option</div>
+            <div class="bench-upgrade-label">The Fastest Thing You Can Do To Improve Your Odds</div>
             <div class="bench-upgrade-text" id="benchUpgrade"></div>
           </div>
         </div>
@@ -1047,17 +1047,17 @@
       <div class="result-section" id="section-company" style="display:none">
         <div class="section-label">
           <span class="section-chip">02</span>
-          <span class="section-title">Target Organization Topology</span>
+          <span class="section-title">About This Company</span>
         </div>
         <div class="company-card" id="companyCard">
           <div class="company-read" id="companyRead"></div>
           <div class="company-cols">
             <div>
-              <div class="company-col-label">Structural Hurdles / Process Risk</div>
+              <div class="company-col-label">Hiring Process Red Flags</div>
               <div class="company-risk" id="companyRisk"></div>
             </div>
             <div>
-              <div class="company-col-label">Anomalies to Watch</div>
+              <div class="company-col-label">Things To Watch Out For</div>
               <div class="company-watchfor" id="companyWatchFor"></div>
             </div>
           </div>
@@ -1068,15 +1068,15 @@
       <div class="result-section" id="section01">
         <div class="section-label">
           <span class="section-chip">03</span>
-          <span class="section-title">Technical Alignment / Exposure Brief</span>
+          <span class="section-title">Your Strengths vs. Your Weak Spots</span>
         </div>
         <div class="brief-cols">
           <div class="brief-col cred">
-            <div class="brief-col-head">Viability Indicators (Credibility)</div>
+            <div class="brief-col-head">What's Working For You</div>
             <div class="brief-bullets" id="credBullets"></div>
           </div>
           <div class="brief-col risk">
-            <div class="brief-col-head">Vulnerabilities (Exposures)</div>
+            <div class="brief-col-head">What Could Get You Rejected</div>
             <div class="brief-bullets" id="riskBullets"></div>
           </div>
         </div>
@@ -1086,7 +1086,7 @@
       <div class="result-section" id="section-signals" style="display:none">
         <div class="section-label">
           <span class="section-chip">04</span>
-          <span class="section-title">Critical Signal Deficits</span>
+          <span class="section-title">What's Missing From Your Story</span>
         </div>
         <div class="signals-list" id="signalDeficits"></div>
       </div>
@@ -1095,7 +1095,7 @@
       <div class="result-section" id="section02">
         <div class="section-label">
           <span class="section-chip">05</span>
-          <span class="section-title">Threat Matrix: Rejection Stages</span>
+          <span class="section-title">The Stages to Prepare For</span>
         </div>
         <div class="risk-stages" id="riskStages"></div>
       </div>
@@ -1104,12 +1104,12 @@
       <div class="result-section" id="section-shaperisk" style="display:none">
         <div class="shaperisk-card" id="shapeRiskCard">
           <div class="shaperisk-header">
-            <div class="shaperisk-label">Profile Shape Anomaly</div>
+            <div class="shaperisk-label">How Interviewers Are Reading You</div>
             <div class="risk-pill" id="shapeRiskLevel"></div>
           </div>
           <div class="shaperisk-headline" id="shapeRiskHeadline"></div>
           <div class="shaperisk-evidence" id="shapeRiskEvidence"></div>
-          <div class="shaperisk-fix-label">Required Positioning Pivot</div>
+          <div class="shaperisk-fix-label">How To Change The Narrative</div>
           <div class="shaperisk-fix" id="shapeRiskFix"></div>
         </div>
       </div>
@@ -1118,7 +1118,7 @@
       <div class="result-section" id="section03">
         <div class="section-label">
           <span class="section-chip">06</span>
-          <span class="section-title">The Evaluation Committee</span>
+          <span class="section-title">The People Deciding If You Get The Job</span>
         </div>
         <div class="eval-grid" id="evaluators"></div>
       </div>
@@ -1129,8 +1129,8 @@
           <div class="priority-header">
             <div class="priority-icon">⚡</div>
             <div>
-              <div class="priority-title">High-Priority Profile Interventions</div>
-              <div class="priority-sub">The highest-leverage actions to execute before profile transmission.</div>
+              <div class="priority-title">Fix These Before You Apply</div>
+              <div class="priority-sub">The highest-impact changes you can make right now to improve your chances.</div>
             </div>
           </div>
           <div class="priority-actions" id="actions"></div>
@@ -1219,7 +1219,7 @@ function metaChipsHTML(confidence, evidence) {
 function evidenceHTML(items) {
   if (!items || !items.length) return '';
   return `<div class="evidence-block">
-    <div class="evidence-label">Direct Empirical Evidence</div>
+    <div class="evidence-label">Why We Think This</div>
     ${items.slice(0,2).map(e=>`<div class="evidence-item">${e}</div>`).join('')}
   </div>`;
 }
@@ -1376,7 +1376,7 @@ For Evaluators:
 - hiring: wants immediate execution value, team relief. Fears someone who requires 90 days to hold their own.
 - internal: wants territory defense, status quo preservation, direct peer comparisons. Skeptical of external hires.
 
-Ensure every string is clean plain text. Keep descriptions under 180 characters. Output exact fields requested in the structured schema.`;
+Ensure every string is clean plain text. Keep descriptions under 180 characters. Output exact fields requested in the structured schema. You MUST include exactly 3 evaluators with ids "recruiter", "hiring", and "internal" — all three are required, never omit any.`;
 
   const userQuery = `JOB SPECIFICATIONS:\n${jd}\n\n---\n\nCANDIDATE RESUME:\n${resume}\n\n---\n\nRespond with a single JSON object only. No explanation, no markdown, no code fences. Use exactly this structure:\n{"survivabilityScore":integer,"verdict":"string","recommendation":"string","confidenceLevel":"string","evidenceStrength":"string","angle":"string","hook":"string","bestPathIn":{"path":"string","reason":"string","firstMove":"string"},"companyReality":{"read":"string","risk":"string","watchFor":["string"]},"strategicBrief":{"credibility":["string"],"risks":["string"]},"signalDeficits":[{"signal":"string","whyItMatters":"string","fix":"string"}],"rejectionRisk":{"stages":[{"stage":"string","riskLevel":"string","confidenceLevel":"string","evidenceStrength":"string","headline":"string","evidence":["string"]}]},"shapeRisk":{"level":"string","headline":"string","evidence":["string"],"fix":"string"},"evaluators":[{"id":"string","name":"string","title":"string","agenda":"string","score":integer,"confidenceLevel":"string","evidenceStrength":"string","gutTake":"string","objections":["string"],"evidence":["string"]}],"benchmarkProfile":{"title":"string","summary":"string","likelySignals":["string"],"whereYouCompete":["string"],"whereYouLag":["string"],"marketReality":"string","fastestUpgrade":"string"},"priorityActions":["string"]}`;
 
@@ -1571,11 +1571,11 @@ function render(d) {
       <div class="signal-deficit">
         <div class="signal-name">${s.signal||''}</div>
         <div>
-          <div class="signal-meta-label">Structural Vulnerability</div>
+          <div class="signal-meta-label">Why This Matters</div>
           <div class="signal-meta">${s.whyItMatters||''}</div>
         </div>
         <div>
-          <div class="signal-meta-label">Tactical Remediation</div>
+          <div class="signal-meta-label">How To Fix It</div>
           <div class="signal-fix">${s.fix||''}</div>
         </div>
       </div>`).join('');
@@ -1664,7 +1664,7 @@ function render(d) {
           <div class="eval-name">${ev.name || '—'}</div>
           <div class="eval-title">${ev.title || '—'}</div>
           <div class="eval-agenda">
-            <div class="eval-agenda-label">Core Agenda Objective</div>
+            <div class="eval-agenda-label">What They Care About</div>
             ${ev.agenda || ''}
           </div>
         </div>
@@ -1676,7 +1676,7 @@ function render(d) {
       <div class="eval-card-body">
         ${metaChipsHTML(ev.confidenceLevel, ev.evidenceStrength)}
         <div class="eval-take">${ev.gutTake || ''}</div>
-        <div class="eval-objections-label">Projected Objections</div>
+        <div class="eval-objections-label">Questions They'll Probably Ask You</div>
         <div class="eval-objections">
           ${(ev.objections||[]).slice(0,2).map(o=>`<div class="eval-objection">${o}</div>`).join('')}
         </div>
