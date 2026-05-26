@@ -909,13 +909,13 @@
       <div class="access-gate-header">
         <span class="access-gate-title">
           <span class="access-status-indicator" id="accessIndicator"></span>
-          BYOK — Gemini API Key
+          BYOK — Anthropic API Key
         </span>
         <span class="trust-note" style="margin:0" id="accessStatusLabel">NO KEY — BYOK REQUIRED</span>
       </div>
-      <p class="access-gate-desc">Your key stays in your browser only. Get one free from <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer">Google AI Studio</a>.</p>
+      <p class="access-gate-desc">Your key stays in your browser only. Get one free from <a href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer">Anthropic Console</a>.</p>
       <div class="access-input-wrap">
-        <input type="password" class="access-input" id="apiKeyInput" placeholder="AIza…">
+        <input type="password" class="access-input" id="apiKeyInput" placeholder="sk-ant-…">
         <button class="btn-access-save" onclick="saveApiKey()">Save Key</button>
       </div>
       <div class="demo-row">
@@ -1151,7 +1151,7 @@ const CIRCUMFERENCE = 345.58;
 // Demo:  runDemo() → renders hardcoded sample data instantly, no API call at all
 
 function getSavedApiKey() {
-  return hardcodedApiKey || localStorage.getItem('gemini_api_key') || "";
+  return hardcodedApiKey || localStorage.getItem('anthropic_api_key') || "";
 }
 
 function initAccessTerminal() {
@@ -1185,10 +1185,10 @@ function saveApiKey() {
   errBox.className = '';
 
   if (inputKey) {
-    localStorage.setItem('gemini_api_key', inputKey);
+    localStorage.setItem('anthropic_api_key', inputKey);
     initAccessTerminal();
   } else {
-    localStorage.removeItem('gemini_api_key');
+    localStorage.removeItem('anthropic_api_key');
     initAccessTerminal();
   }
 }
@@ -1347,7 +1347,7 @@ async function runBrief() {
 
   // Key guard — BYOK only
   if (!activeKey) {
-    errTxt.textContent = 'No API key saved. Enter your Gemini key above, or use Load Demo to preview the tool.';
+    errTxt.textContent = 'No API key saved. Enter your Anthropic key above, or use Load Demo to preview the tool.';
     errBox.className = 'visible';
     document.getElementById('accessGate').scrollIntoView({ behavior: 'smooth' });
     return;
@@ -1378,141 +1378,30 @@ For Evaluators:
 
 Ensure every string is clean plain text. Keep descriptions under 180 characters. Output exact fields requested in the structured schema.`;
 
-  const userQuery = `JOB SPECIFICATIONS:\n${jd}\n\n---\n\nCANDIDATE RESUME:\n${resume}`;
+  const userQuery = `JOB SPECIFICATIONS:\n${jd}\n\n---\n\nCANDIDATE RESUME:\n${resume}\n\n---\n\nRespond with a single JSON object only. No explanation, no markdown, no code fences. Use exactly this structure:\n{"survivabilityScore":integer,"verdict":"string","recommendation":"string","confidenceLevel":"string","evidenceStrength":"string","angle":"string","hook":"string","bestPathIn":{"path":"string","reason":"string","firstMove":"string"},"companyReality":{"read":"string","risk":"string","watchFor":["string"]},"strategicBrief":{"credibility":["string"],"risks":["string"]},"signalDeficits":[{"signal":"string","whyItMatters":"string","fix":"string"}],"rejectionRisk":{"stages":[{"stage":"string","riskLevel":"string","confidenceLevel":"string","evidenceStrength":"string","headline":"string","evidence":["string"]}]},"shapeRisk":{"level":"string","headline":"string","evidence":["string"],"fix":"string"},"evaluators":[{"id":"string","name":"string","title":"string","agenda":"string","score":integer,"confidenceLevel":"string","evidenceStrength":"string","gutTake":"string","objections":["string"],"evidence":["string"]}],"benchmarkProfile":{"title":"string","summary":"string","likelySignals":["string"],"whereYouCompete":["string"],"whereYouLag":["string"],"marketReality":"string","fastestUpgrade":"string"},"priorityActions":["string"]}`;
 
   const requestPayload = {
-    contents: [{ parts: [{ text: userQuery }] }],
-    systemInstruction: { parts: [{ text: systemPrompt }] },
-    generationConfig: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: "OBJECT",
-        properties: {
-          survivabilityScore: { type: "INTEGER" },
-          verdict: { type: "STRING" },
-          recommendation: { type: "STRING" },
-          confidenceLevel: { type: "STRING" },
-          evidenceStrength: { type: "STRING" },
-          angle: { type: "STRING" },
-          hook: { type: "STRING" },
-          bestPathIn: {
-            type: "OBJECT",
-            properties: {
-              path: { type: "STRING" },
-              reason: { type: "STRING" },
-              firstMove: { type: "STRING" }
-            },
-            required: ["path", "reason", "firstMove"]
-          },
-          companyReality: {
-            type: "OBJECT",
-            properties: {
-              read: { type: "STRING" },
-              risk: { type: "STRING" },
-              watchFor: { type: "ARRAY", items: { type: "STRING" } }
-            },
-            required: ["read", "risk", "watchFor"]
-          },
-          strategicBrief: {
-            type: "OBJECT",
-            properties: {
-              credibility: { type: "ARRAY", items: { type: "STRING" } },
-              risks: { type: "ARRAY", items: { type: "STRING" } }
-            },
-            required: ["credibility", "risks"]
-          },
-          signalDeficits: {
-            type: "ARRAY",
-            items: {
-              type: "OBJECT",
-              properties: {
-                signal: { type: "STRING" },
-                whyItMatters: { type: "STRING" },
-                fix: { type: "STRING" }
-              },
-              required: ["signal", "whyItMatters", "fix"]
-            }
-          },
-          rejectionRisk: {
-            type: "OBJECT",
-            properties: {
-              stages: {
-                type: "ARRAY",
-                items: {
-                  type: "OBJECT",
-                  properties: {
-                    stage: { type: "STRING" },
-                    riskLevel: { type: "STRING" },
-                    confidenceLevel: { type: "STRING" },
-                    evidenceStrength: { type: "STRING" },
-                    headline: { type: "STRING" },
-                    evidence: { type: "ARRAY", items: { type: "STRING" } }
-                  },
-                  required: ["stage", "riskLevel", "confidenceLevel", "evidenceStrength", "headline", "evidence"]
-                }
-              }
-            },
-            required: ["stages"]
-          },
-          shapeRisk: {
-            type: "OBJECT",
-            properties: {
-              level: { type: "STRING" },
-              headline: { type: "STRING" },
-              evidence: { type: "ARRAY", items: { type: "STRING" } },
-              fix: { type: "STRING" }
-            },
-            required: ["level", "headline", "evidence", "fix"]
-          },
-          evaluators: {
-            type: "ARRAY",
-            items: {
-              type: "OBJECT",
-              properties: {
-                id: { type: "STRING" },
-                name: { type: "STRING" },
-                title: { type: "STRING" },
-                agenda: { type: "STRING" },
-                score: { type: "INTEGER" },
-                confidenceLevel: { type: "STRING" },
-                evidenceStrength: { type: "STRING" },
-                gutTake: { type: "STRING" },
-                objections: { type: "ARRAY", items: { type: "STRING" } },
-                evidence: { type: "ARRAY", items: { type: "STRING" } }
-              },
-              required: ["id", "name", "title", "agenda", "score", "confidenceLevel", "evidenceStrength", "gutTake", "objections", "evidence"]
-            }
-          },
-          benchmarkProfile: {
-            type: "OBJECT",
-            properties: {
-              title: { type: "STRING" },
-              summary: { type: "STRING" },
-              likelySignals: { type: "ARRAY", items: { type: "STRING" } },
-              whereYouCompete: { type: "ARRAY", items: { type: "STRING" } },
-              whereYouLag: { type: "ARRAY", items: { type: "STRING" } },
-              marketReality: { type: "STRING" },
-              fastestUpgrade: { type: "STRING" }
-            },
-            required: ["title", "summary", "likelySignals", "whereYouCompete", "whereYouLag", "marketReality", "fastestUpgrade"]
-          },
-          priorityActions: { type: "ARRAY", items: { type: "STRING" } }
-        },
-        required: [
-          "survivabilityScore", "verdict", "recommendation", "confidenceLevel", "evidenceStrength",
-          "angle", "hook", "bestPathIn", "companyReality", "strategicBrief", "signalDeficits",
-          "rejectionRisk", "shapeRisk", "evaluators", "benchmarkProfile", "priorityActions"
-        ]
-      }
-    }
+    model: "claude-sonnet-4-5",
+    max_tokens: 4000,
+    system: systemPrompt,
+    messages: [{ role: "user", content: userQuery }]
   };
 
   try {
     let response;
     if (activeKey) {
       response = await fetchWithBackoff(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${activeKey}`,
-        { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(requestPayload) }
+        "https://api.anthropic.com/v1/messages",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": activeKey,
+            "anthropic-version": "2023-06-01",
+            "anthropic-dangerous-direct-browser-access": "true"
+          },
+          body: JSON.stringify(requestPayload)
+        }
       );
     }
 
@@ -1521,8 +1410,8 @@ Ensure every string is clean plain text. Keep descriptions under 180 characters.
     }
 
     const result = await response.json();
-    const rawText = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-    
+    const rawText = result?.content?.[0]?.text;
+
     if (!rawText) {
       throw new Error("Diagnostic report generated empty content payload.");
     }
