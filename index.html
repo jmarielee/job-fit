@@ -1332,6 +1332,123 @@ async function fetchWithBackoff(url, options, maxRetries = 5) {
   throw new Error("Maximum retry threshold exceeded.");
 }
 
+/* ===== SCORING BRAIN — required/preferred + centrality + cap + floor =====
+   The model LABELS (jdItems / strengths); this computes the score.
+   Edit only the constants at the top to tune behaviour. ===== */
+const TIER_W   = { required: 1.0, preferred: 0.35 };
+const CENT_W   = { core: 1.0, supporting: 0.6, peripheral: 0.3 };
+const STATUS_F = { missing: 1.0, partial: 0.5, meets: 0.0 };
+const EDGE_BONUS    = { core: 12, supporting: 6, peripheral: 0, none: 0 };
+const REALISM_CEIL  = 95;   // the room is never a sure thing
+const CAP_VALUE     = 45;   // required-gate cap
+const TIE_FACTOR    = 1.3;  // edge-vs-gap dominance threshold
+
+function _itemWeight(it) {
+  const t = TIER_W[it.tier] != null ? TIER_W[it.tier] : TIER_W.required;
+  const c = CENT_W[it.centrality] != null ? CENT_W[it.centrality] : CENT_W.supporting;
+  return t * c;
+}
+function _computeGaps(jdItems) {
+  let G = 0, total = 0;
+  (jdItems || []).forEach(it => {
+    const w = _itemWeight(it);
+    total += w;
+    G += w * (STATUS_F[it.status] != null ? STATUS_F[it.status] : 0);
+  });
+  return { G, total, gNorm: total > 0 ? G / total : 0 };
+}
+function _computeStrength(strengths) {
+  let S = 0, best = 'none';
+  const rank = { core: 3, supporting: 2, peripheral: 1, none: 0 };
+  (strengths || []).forEach(s => {
+    if (!s.mapsToNeed) return;
+    S += (CENT_W[s.centrality] != null ? CENT_W[s.centrality] : CENT_W.supporting);
+    if (rank[s.centrality] > rank[best]) best = s.centrality;
+  });
+  return { S, best };
+}
+function _requiredCoreMissing(jdItems) {
+  return (jdItems || []).filter(it =>
+    it.tier === 'required' &&
+    (it.centrality === 'core' || it.centrality === 'supporting') &&
+    it.status === 'missing'
+  ).length;
+}
+function _confidence(o) {
+  if ((o.jdItemCount || 0) < 3) return 'low';
+  if ((o.resumeLen || 0) < 200) return 'low';
+  if ((o.jdLen || 0) < 200)     return 'low';
+  return 'ok';
+}
+function _edgeVsGap(S, G) {
+  if (S > TIE_FACTOR * G) return 'edge';
+  if (G > TIE_FACTOR * S) return 'gap';
+  return 'balanced';
+}
+function _tallyVote(evaluators) {
+  let apply = 0, skip = 0;
+  (evaluators || []).forEach(e => {
+    const l = (e.lean || '').toLowerCase();
+    if (l.indexOf('skip') !== -1) skip++;
+    else if (l.indexOf('apply') !== -1) apply++;
+  });
+  return { apply, skip };
+}
+function computeScore(model) {
+  const gaps = _computeGaps(model.jdItems);
+  const str  = _computeStrength(model.strengths);
+
+  const base  = 100 * (1 - gaps.gNorm);
+  const bonus = EDGE_BONUS[str.best] || 0;
+  let score = Math.min(REALISM_CEIL, base + bonus);
+  score = Math.max(0, score);
+
+  // Guard 1 — required-gate cap (preferred items can NEVER trigger this)
+  const reqMiss = _requiredCoreMissing(model.jdItems);
+  let capped = false, capReason = '';
+  if (reqMiss >= 2) {
+    capped = true;
+    if (score > CAP_VALUE) score = CAP_VALUE;
+    capReason = reqMiss + ' core required qualifications unmet — score capped regardless of other strengths.';
+  }
+
+  // Guard 3 — confidence floor (thin inputs can't produce an extreme verdict)
+  const conf = _confidence({
+    jdItemCount: (model.jdItems || []).length,
+    resumeLen: model.resumeLen || 0,
+    jdLen: model.jdLen || 0,
+  });
+  let lowConfidence = false;
+  if (conf === 'low') { lowConfidence = true; score = Math.max(40, Math.min(65, score)); }
+
+  score = Math.round(score);
+
+  const evg  = _edgeVsGap(str.S, gaps.G);
+  const vote = _tallyVote((model.evaluators || []).filter(e => e.id !== 'benchmark'));
+
+  let recommendation;
+  if (vote.skip >= 2 || (capped && vote.apply < 2)) recommendation = 'Do Not Apply';
+  else if (vote.apply >= 2) recommendation = (evg === 'edge' && !capped) ? 'Apply' : 'Apply with Caution';
+  else recommendation = (evg === 'edge') ? 'Apply with Caution' : 'Do Not Apply';
+
+  let verdict;
+  if (score >= 75) verdict = 'Strong Candidate';
+  else if (score >= 55) verdict = 'Viable but Exposed';
+  else if (score >= 35) verdict = 'Long Shot';
+  else verdict = 'Do Not Apply';
+  if (vote.skip >= 2 && (verdict === 'Strong Candidate' || verdict === 'Viable but Exposed')) verdict = 'Long Shot';
+
+  const divergent = vote.apply >= 1 && vote.skip >= 1;
+
+  return {
+    score, base: Math.round(base), bonus,
+    gWeighted: +gaps.G.toFixed(2), sWeighted: +str.S.toFixed(2),
+    edgeVsGap: evg, capped, capReason, lowConfidence,
+    vote, recommendation, verdict, divergent, reqMiss,
+  };
+}
+/* ===== END SCORING BRAIN ===== */
+
 async function runBrief() {
   const jd = document.getElementById('jdInput').value.trim();
   const resume = document.getElementById('resumeInput').value.trim();
@@ -1376,9 +1493,14 @@ For Evaluators:
 - hiring: wants immediate execution value, team relief. Fears someone who requires 90 days to hold their own.
 - internal: wants territory defense, status quo preservation, direct peer comparisons. Skeptical of external hires.
 
-Ensure every string is clean plain text. Keep descriptions under 180 characters. Output exact fields requested in the structured schema. You MUST include exactly 3 evaluators with ids "recruiter", "hiring", and "internal" — all three are required, never omit any.`;
+Ensure every string is clean plain text. Keep descriptions under 180 characters. Output exact fields requested in the structured schema. You MUST include exactly 3 evaluators with ids "recruiter", "hiring", and "internal" — all three are required, never omit any.
 
-  const userQuery = `JOB SPECIFICATIONS:\n${jd}\n\n---\n\nCANDIDATE RESUME:\n${resume}\n\n---\n\nRespond with a single JSON object only. No explanation, no markdown, no code fences. Use exactly this structure:\n{"survivabilityScore":integer,"verdict":"string","recommendation":"string","confidenceLevel":"string","evidenceStrength":"string","angle":"string","hook":"string","bestPathIn":{"path":"string","reason":"string","firstMove":"string"},"companyReality":{"read":"string","risk":"string","watchFor":["string"]},"strategicBrief":{"credibility":["string"],"risks":["string"]},"signalDeficits":[{"signal":"string","whyItMatters":"string","fix":"string"}],"rejectionRisk":{"stages":[{"stage":"string","riskLevel":"string","confidenceLevel":"string","evidenceStrength":"string","headline":"string","evidence":["string"]}]},"shapeRisk":{"level":"string","headline":"string","evidence":["string"],"fix":"string"},"evaluators":[{"id":"string","name":"string","title":"string","agenda":"string","score":integer,"confidenceLevel":"string","evidenceStrength":"string","gutTake":"string","objections":["string"],"evidence":["string"]}],"benchmarkProfile":{"title":"string","summary":"string","likelySignals":["string"],"whereYouCompete":["string"],"whereYouLag":["string"],"marketReality":"string","fastestUpgrade":"string"},"priorityActions":["string"]}`;
+LABELING (this drives the computed survivability score — label honestly even when it helps the candidate):
+jdItems: break the JD into real line-items. tier = required or preferred, from the JD OWN words (required / must have / minimum / X+ years => required; preferred / strongly preferred / a plus / nice to have / bonus / ideally / a major advantage => preferred; strongly preferred is STILL preferred; ambiguous => preferred). centrality = core (what the role primarily exists to do) / supporting / peripheral, judged against THIS role primary function (a tool or framework is usually peripheral for a judgment or design role). status = meets / partial / missing, strictly from the resume; vocabulary overlap is not meets.
+strengths: the candidate real strengths for this role, each with centrality (core/supporting/peripheral) and mapsToNeed (true only if it answers a real JD need).
+Framing: a PREFERRED gap is friction to neutralize, never a disqualifier. Never call a preferred gap table stakes, a bottleneck, or a wall. A REQUIRED gap on a core or supporting item is a real gate.`;
+
+  const userQuery = `JOB SPECIFICATIONS:\n${jd}\n\n---\n\nCANDIDATE RESUME:\n${resume}\n\n---\n\nRespond with a single JSON object only. No explanation, no markdown, no code fences. Use exactly this structure:\n{"survivabilityScore":integer,"jdItems":[{"text":"string","tier":"required|preferred","centrality":"core|supporting|peripheral","status":"meets|partial|missing"}],"strengths":[{"text":"string","centrality":"core|supporting|peripheral","mapsToNeed":true}],"verdict":"string","recommendation":"string","confidenceLevel":"string","evidenceStrength":"string","angle":"string","hook":"string","bestPathIn":{"path":"string","reason":"string","firstMove":"string"},"companyReality":{"read":"string","risk":"string","watchFor":["string"]},"strategicBrief":{"credibility":["string"],"risks":["string"]},"signalDeficits":[{"signal":"string","whyItMatters":"string","fix":"string"}],"rejectionRisk":{"stages":[{"stage":"string","riskLevel":"string","confidenceLevel":"string","evidenceStrength":"string","headline":"string","evidence":["string"]}]},"shapeRisk":{"level":"string","headline":"string","evidence":["string"],"fix":"string"},"evaluators":[{"id":"string","name":"string","title":"string","agenda":"string","score":integer,"confidenceLevel":"string","evidenceStrength":"string","gutTake":"string","objections":["string"],"evidence":["string"]}],"benchmarkProfile":{"title":"string","summary":"string","likelySignals":["string"],"whereYouCompete":["string"],"whereYouLag":["string"],"marketReality":"string","fastestUpgrade":"string"},"priorityActions":["string"]}`;
 
   const requestPayload = {
     model: "claude-sonnet-4-5",
@@ -1418,6 +1540,16 @@ Ensure every string is clean plain text. Keep descriptions under 180 characters.
 
     const cleaned = rawText.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/,'');
     const parsedData = JSON.parse(cleaned);
+    // ── deterministic scoring: the model labelled; the number is COMPUTED ──
+    if (parsedData.jdItems && parsedData.jdItems.length) {
+      const _vote = (parsedData.evaluators || []).map(e => ({ id: e.id, lean: (e.score ?? 50) >= 55 ? "apply" : "skip" }));
+      const _b = computeScore({ jdItems: parsedData.jdItems, strengths: parsedData.strengths, evaluators: _vote, resumeLen: resume.length, jdLen: jd.length });
+      parsedData.survivabilityScore = _b.score;
+      parsedData.recommendation     = _b.recommendation;
+      parsedData.verdict            = _b.verdict;
+      if (_b.lowConfidence) parsedData.confidenceLevel = "low";
+      parsedData._brain = _b;
+    }
     render(parsedData);
     finishStepper();
 
