@@ -761,6 +761,11 @@
   .eval-score-wrap.mid .eval-score-num { color: var(--risk-medium); }
   .eval-score-wrap.lo .eval-score-num { color: var(--risk-high); }
   .eval-score-wrap.crit .eval-score-num { color: var(--risk-critical); }
+  .eval-verdict-wrap { flex-shrink: 0; }
+  .eval-verdict-badge { display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; padding: 0.3rem 0.7rem; border: 1px solid var(--border-color); white-space: nowrap; }
+  .eval-verdict-badge.advance { background: var(--risk-low-bg); color: var(--risk-low); }
+  .eval-verdict-badge.fence   { background: var(--risk-medium-bg); color: #856404; }
+  .eval-verdict-badge.cut     { background: var(--risk-critical-bg); color: var(--risk-critical); }
 
   .eval-card-body { display: flex; flex-direction: column; gap: 1.25rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem; }
   .eval-fear-row { font-size: 0.875rem; }
@@ -1144,6 +1149,8 @@
 <script>
 const hardcodedApiKey = ""; // Always blank. BYOK only: the user's key lives in their browser (localStorage) and goes straight to the Anthropic API. No server, no proxy, nothing stored.
 const RISK_SCORE = { low:18, medium:48, high:76, critical:94 };
+function normRisk(raw){const r=(raw||'medium').toLowerCase();if(r.includes('critical'))return'critical';if(r.includes('elevated')||r.includes('high'))return'high';if(r.includes('moderate')||r.includes('medium'))return'medium';if(r.includes('low'))return'low';return'medium';}
+function evalVerdict(score){const v=(score==null?50:score);if(v>=65)return{label:'Would advance',cls:'advance'};if(v>=50)return{label:'On the fence',cls:'fence'};return{label:'Would cut',cls:'cut'};}
 const CIRCUMFERENCE = 345.58;
 
 // --- AUTH MODE LOGIC ---
@@ -1730,7 +1737,8 @@ function render(d) {
   const stagesEl = document.getElementById('riskStages');
   stagesEl.innerHTML = '';
   (d.rejectionRisk?.stages||[]).forEach(s => {
-    const lv = (s.riskLevel||'medium').toLowerCase();
+    const rawLevel = (s.riskLevel||'medium');
+    const lv = normRisk(rawLevel);
     const pct = RISK_SCORE[lv] || 48;
     const card = document.createElement('div');
     card.className = 'risk-stage-card';
@@ -1744,7 +1752,7 @@ function render(d) {
               <div class="risk-bar-fill ${lv}" style="width:${pct}%"></div>
             </div>
           </div>
-          <div class="risk-pill ${lv}">${lv}</div>
+          <div class="risk-pill ${lv}">${esc(rawLevel)}</div>
         </div>
         ${metaChipsHTML(s.confidenceLevel, s.evidenceStrength)}
       </div>
@@ -1795,7 +1803,7 @@ function render(d) {
   evalOrder.forEach(id => {
     const ev = (d.evaluators||[]).find(e => e.id === id);
     if (!ev) return;
-    const sc2 = scoreClass(ev.score ?? 50);
+    const verdict = evalVerdict(ev.score);
     const card = document.createElement('div');
     card.className = 'eval-card';
 
@@ -1810,9 +1818,8 @@ function render(d) {
             ${ev.agenda || ''}
           </div>
         </div>
-        <div class="eval-score-wrap ${sc2}">
-          <div class="eval-score-num">${ev.score ?? '—'}</div>
-          <div class="eval-score-label">score tier</div>
+        <div class="eval-verdict-wrap">
+          <span class="eval-verdict-badge ${verdict.cls}">${verdict.label}</span>
         </div>
       </div>
       <div class="eval-card-body">
