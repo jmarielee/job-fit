@@ -761,6 +761,11 @@
   .eval-score-wrap.mid .eval-score-num { color: var(--risk-medium); }
   .eval-score-wrap.lo .eval-score-num { color: var(--risk-high); }
   .eval-score-wrap.crit .eval-score-num { color: var(--risk-critical); }
+  .eval-verdict-wrap { flex-shrink: 0; }
+  .eval-verdict-badge { display: inline-block; font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; padding: 0.3rem 0.7rem; border: 1px solid var(--border-color); white-space: nowrap; }
+  .eval-verdict-badge.advance { background: var(--risk-low-bg); color: var(--risk-low); }
+  .eval-verdict-badge.fence   { background: var(--risk-medium-bg); color: #856404; }
+  .eval-verdict-badge.cut     { background: var(--risk-critical-bg); color: var(--risk-critical); }
 
   .eval-card-body { display: flex; flex-direction: column; gap: 1.25rem; border-top: 1px solid var(--border-color); padding-top: 1.25rem; }
   .eval-fear-row { font-size: 0.875rem; }
@@ -897,9 +902,9 @@
 
 <div class="container">
   <div class="header">
-    <p class="header-eyebrow">Intel Dossier // Adversarial Alignment</p>
-    <h1>Will you <em>actually</em><br>survive this loop?</h1>
-    <p class="header-sub">An uncompromising diagnostic assessment mapping your technical credibility against the true competitive bar, potential political landmines, and critical evaluators.</p>
+    <p class="header-eyebrow">Job Fit Report // Honest Assessment</p>
+    <h1>Will you <em>actually</em><br>get this job?</h1>
+    <p class="header-sub">Paste the job description and your resume. Get an honest, unfiltered breakdown of your real chances — where you're strong, where you'll get cut, and exactly what to fix before you apply.</p>
   </div>
 
   <!-- STAGE 1: RAW INGEST -->
@@ -925,15 +930,15 @@
       </div>
     </div>
 
-    <p class="trust-note">Security Classification: Active Candidacy Evaluation</p>
+    <p class="trust-note">Your inputs stay in your browser — nothing is stored or shared</p>
     <div class="intake">
       <div class="intake-card">
-        <label>Target Job Specifications</label>
-        <textarea id="jdInput" placeholder="Paste the exact target job description / expectations text…"></textarea>
+        <label>The Job Description</label>
+        <textarea id="jdInput" placeholder="Paste the full job posting here…"></textarea>
       </div>
       <div class="intake-card">
-        <label>Your Candidate Profile (Resume)</label>
-        <textarea id="resumeInput" placeholder="Paste your raw experience details / resume block…"></textarea>
+        <label>Your Resume</label>
+        <textarea id="resumeInput" placeholder="Paste your resume or experience here…"></textarea>
       </div>
     </div>
 
@@ -942,7 +947,7 @@
         <div class="spinner"></div>
         <span class="btn-label">Analyze Target</span>
       </button>
-      <span class="run-hint">Inference engine: ~20–40 seconds</span>
+      <span class="run-hint">Takes about 20–40 seconds</span>
     </div>
 
     <div id="errorBox"><div class="error-inner" id="errorText"></div></div>
@@ -965,32 +970,32 @@
   <!-- STAGE 3: INTERCEPT DOSSIER -->
   <div id="stage-result">
     <div class="stage-result-nav">
-      <button class="btn-reset" onclick="resetToInput()">← Rescan Profile</button>
+      <button class="btn-reset" onclick="resetToInput()">← Run a New Analysis</button>
     </div>
     
     <div id="results">
 
       <!-- RAW SCORE METRICS -->
       <div class="result-section" id="section-hero">
-        <p class="trust-note">Intelligence Report: High-Fidelity Gap Analysis</p>
+        <p class="trust-note">Your Job Fit Report</p>
         <div class="score-hero" id="scoreHero">
           <div class="score-ring-outer">
             <svg class="score-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
               <circle class="score-track" cx="60" cy="60" r="55"/>
               <circle class="score-arc" id="scoreArc" cx="60" cy="60" r="55"/>
               <text class="score-svg-num" id="scoreNum" x="60" y="56" text-anchor="middle" dominant-baseline="middle">—</text>
-              <text class="score-svg-sub" x="60" y="78" text-anchor="middle">SURVIVABILITY</text>
+              <text class="score-svg-sub" x="60" y="78" text-anchor="middle">YOUR ODDS</text>
             </svg>
           </div>
           <div class="score-meta">
             <div class="score-rec-badge" id="scoreRecBadge"><span class="score-badge-dot"></span><span id="scoreRecText">—</span></div>
             <div class="score-verdict" id="scoreVerdict">—</div>
-            <div class="score-angle-label">Command Alignment Strategy</div>
+            <div class="score-angle-label">Your Best Angle Into This Role</div>
             <div class="score-angle" id="scoreAngle"></div>
             <div class="meta-chips" id="scoreMetaChips"></div>
             <div class="score-meta-grid">
               <div class="score-meta-item">
-                <span class="score-meta-label">Primary Hook</span>
+                <span class="score-meta-label">The One Thing Working In Your Favor</span>
                 <span class="score-meta-text" id="scoreHook"></span>
               </div>
             </div>
@@ -998,10 +1003,10 @@
         </div>
         
         <div class="bestpath-card" id="bestPathCard" style="display:none">
-          <div class="bestpath-label">Tactical Access Path</div>
+          <div class="bestpath-label">Your Best Way In</div>
           <div class="bestpath-path" id="bestPathPath"></div>
           <div class="bestpath-reason" id="bestPathReason"></div>
-          <div class="bestpath-move-label">Immediate Tactical Action</div>
+          <div class="bestpath-move-label">Do This First</div>
           <div class="bestpath-move" id="bestPathFirstMove"></div>
         </div>
       </div>
@@ -1010,9 +1015,9 @@
       <div class="result-section" id="section-benchmark" style="display:none">
         <div class="section-label">
           <span class="section-chip">01</span>
-          <span class="section-title">Calibration Target Profile</span>
+          <span class="section-title">Who You're Actually Competing Against</span>
         </div>
-        <p class="bench-intro">The target candidate profile typically dominating the competitive landscape.</p>
+        <p class="bench-intro">This is the typical candidate who gets the job. Here's how you stack up.</p>
         <div class="bench-card">
           <div>
             <div class="bench-title" id="benchTitle"></div>
@@ -1020,24 +1025,24 @@
           </div>
           <div class="bench-compare">
             <div class="bench-col compete">
-              <div class="bench-col-label">Shared Competitive Space</div>
+              <div class="bench-col-label">Where You Can Compete</div>
               <div id="benchCompete"></div>
             </div>
             <div class="bench-col lag">
-              <div class="bench-col-label">Vulnerable Deficit Zones</div>
+              <div class="bench-col-label">The Gap You Need to Close</div>
               <div id="benchLag"></div>
             </div>
           </div>
           <div>
-            <div class="bench-block-label">Typical Market Signals Generated by Winners</div>
+            <div class="bench-block-label">What Winning Candidates Usually Have</div>
             <div id="benchSignals"></div>
           </div>
           <div>
-            <div class="bench-block-label">Market Reality & Supply Realities</div>
+            <div class="bench-block-label">The Honest Market Reality</div>
             <div class="bench-reality-text" id="benchReality"></div>
           </div>
           <div class="bench-upgrade">
-            <div class="bench-upgrade-label">Highest Leverage Upgrade Option</div>
+            <div class="bench-upgrade-label">The Fastest Thing You Can Do To Improve Your Odds</div>
             <div class="bench-upgrade-text" id="benchUpgrade"></div>
           </div>
         </div>
@@ -1047,17 +1052,17 @@
       <div class="result-section" id="section-company" style="display:none">
         <div class="section-label">
           <span class="section-chip">02</span>
-          <span class="section-title">Target Organization Topology</span>
+          <span class="section-title">About This Company</span>
         </div>
         <div class="company-card" id="companyCard">
           <div class="company-read" id="companyRead"></div>
           <div class="company-cols">
             <div>
-              <div class="company-col-label">Structural Hurdles / Process Risk</div>
+              <div class="company-col-label">Hiring Process Red Flags</div>
               <div class="company-risk" id="companyRisk"></div>
             </div>
             <div>
-              <div class="company-col-label">Anomalies to Watch</div>
+              <div class="company-col-label">Things To Watch Out For</div>
               <div class="company-watchfor" id="companyWatchFor"></div>
             </div>
           </div>
@@ -1068,15 +1073,15 @@
       <div class="result-section" id="section01">
         <div class="section-label">
           <span class="section-chip">03</span>
-          <span class="section-title">Technical Alignment / Exposure Brief</span>
+          <span class="section-title">Your Strengths vs. Your Weak Spots</span>
         </div>
         <div class="brief-cols">
           <div class="brief-col cred">
-            <div class="brief-col-head">Viability Indicators (Credibility)</div>
+            <div class="brief-col-head">What's Working For You</div>
             <div class="brief-bullets" id="credBullets"></div>
           </div>
           <div class="brief-col risk">
-            <div class="brief-col-head">Vulnerabilities (Exposures)</div>
+            <div class="brief-col-head">What Could Get You Rejected</div>
             <div class="brief-bullets" id="riskBullets"></div>
           </div>
         </div>
@@ -1086,7 +1091,7 @@
       <div class="result-section" id="section-signals" style="display:none">
         <div class="section-label">
           <span class="section-chip">04</span>
-          <span class="section-title">Critical Signal Deficits</span>
+          <span class="section-title">What's Missing From Your Story</span>
         </div>
         <div class="signals-list" id="signalDeficits"></div>
       </div>
@@ -1095,7 +1100,7 @@
       <div class="result-section" id="section02">
         <div class="section-label">
           <span class="section-chip">05</span>
-          <span class="section-title">Threat Matrix: Rejection Stages</span>
+          <span class="section-title">The Stages to Prepare For</span>
         </div>
         <div class="risk-stages" id="riskStages"></div>
       </div>
@@ -1104,12 +1109,12 @@
       <div class="result-section" id="section-shaperisk" style="display:none">
         <div class="shaperisk-card" id="shapeRiskCard">
           <div class="shaperisk-header">
-            <div class="shaperisk-label">Profile Shape Anomaly</div>
+            <div class="shaperisk-label">How Interviewers Are Reading You</div>
             <div class="risk-pill" id="shapeRiskLevel"></div>
           </div>
           <div class="shaperisk-headline" id="shapeRiskHeadline"></div>
           <div class="shaperisk-evidence" id="shapeRiskEvidence"></div>
-          <div class="shaperisk-fix-label">Required Positioning Pivot</div>
+          <div class="shaperisk-fix-label">How To Change The Narrative</div>
           <div class="shaperisk-fix" id="shapeRiskFix"></div>
         </div>
       </div>
@@ -1118,7 +1123,7 @@
       <div class="result-section" id="section03">
         <div class="section-label">
           <span class="section-chip">06</span>
-          <span class="section-title">The Evaluation Committee</span>
+          <span class="section-title">The People Deciding If You Get The Job</span>
         </div>
         <div class="eval-grid" id="evaluators"></div>
       </div>
@@ -1129,8 +1134,8 @@
           <div class="priority-header">
             <div class="priority-icon">⚡</div>
             <div>
-              <div class="priority-title">High-Priority Profile Interventions</div>
-              <div class="priority-sub">The highest-leverage actions to execute before profile transmission.</div>
+              <div class="priority-title">Fix These Before You Apply</div>
+              <div class="priority-sub">The highest-impact changes you can make right now to improve your chances.</div>
             </div>
           </div>
           <div class="priority-actions" id="actions"></div>
@@ -1142,13 +1147,15 @@
 </div>
 
 <script>
-const hardcodedApiKey = ""; // Unused — BYOK only; the user's key is read from localStorage
+const hardcodedApiKey = ""; // Always blank. BYOK only: the user's key lives in their browser (localStorage) and goes straight to the Anthropic API. No server, no proxy, nothing stored.
 const RISK_SCORE = { low:18, medium:48, high:76, critical:94 };
+function normRisk(raw){const r=(raw||'medium').toLowerCase();if(r.includes('critical'))return'critical';if(r.includes('elevated')||r.includes('high'))return'high';if(r.includes('moderate')||r.includes('medium'))return'medium';if(r.includes('low'))return'low';return'medium';}
+function evalVerdict(score){const v=(score==null?50:score);if(v>=65)return{label:'Would advance',cls:'advance'};if(v>=50)return{label:'On the fence',cls:'fence'};return{label:'Would cut',cls:'cut'};}
 const CIRCUMFERENCE = 345.58;
 
 // --- AUTH MODE LOGIC ---
-// BYOK:  user has saved a personal key in localStorage → calls the Anthropic API directly
-// Demo:  runDemo() → renders hardcoded sample data instantly, no API call at all
+// BYOK:  user saves a personal key in localStorage → calls the Anthropic API directly from the browser
+// Demo:  runDemo() → runs hardcoded sample labels through the real scoring engine locally, no API call
 
 function getSavedApiKey() {
   return hardcodedApiKey || localStorage.getItem('anthropic_api_key') || "";
@@ -1177,7 +1184,7 @@ function initAccessTerminal() {
 }
 
 // --- DEMO DATA ---
-const DEMO_DATA = {"survivabilityScore":61,"verdict":"Plausible but Outgunned","recommendation":"Apply with Caution","confidenceLevel":"HIGH","evidenceStrength":"MODERATE","angle":"Strong execution background, weak on leadership and ownership signals","hook":"Deep IC contributor with tangible delivery record — but gaps in scope narrative and public presence will surface fast in committee review.","bestPathIn":{"path":"Direct application + internal referral from existing engineering team member","reason":"Recruiter screen will likely flag the title gap. An internal referral bypasses the ATS cold-open and gets the resume into hiring manager hands directly.","firstMove":"Identify 2nd-degree LinkedIn connections at the company before submitting. Request a 15-minute informational call first."},"companyReality":{"read":"Series B startup, ~60-person eng org, recently restructured after layoffs 8 months ago. Hiring for execution now, not exploration. Every new headcount is a committee debate.","risk":"Post-layoff orgs carry political scar tissue. New hires face heightened scrutiny from surviving senior engineers who now own more surface area and are protective of team quality.","watchFor":["Long interview loops (6+ rounds) signal indecisiveness — an internal candidate may already exist","Multiple rounds with same-level ICs is a tell that hiring authority is unclear","Vague answers on team structure suggest the reorg is still actively settling"]},"strategicBrief":{"credibility":["3 years of backend systems work at scale is directly legible to a hiring engineer in this domain","The data pipeline project aligns precisely with the core technical requirements stated in the JD","Measurable delivery metrics (latency reduction, throughput increase) will survive recruiter-level screening"],"risks":["No tech lead or staff-level title — will benchmark below the target for a mid-senior IC role","Python-heavy profile in a Go/Rust shop raises a quiet execution risk flag in the hiring manager's mind","No public portfolio or open-source signal makes the technical quality claim completely unverifiable pre-screen"]},"signalDeficits":[{"signal":"TECHNICAL WRITING / PUBLIC PORTFOLIO","whyItMatters":"Hiring managers at this level want proof of thought leadership. No blog, no talks, no OSS contributions means the technical quality claim is entirely unverifiable.","fix":"Publish one technical deep-dive on the data pipeline architecture before applying. Link it in the resume header under a 'Technical Writing' field."},{"signal":"OWNERSHIP SCOPE LANGUAGE","whyItMatters":"Every bullet reads as 'I contributed to X' or 'I helped build Y'. Zero instances of 'I owned', 'I led', or 'I decided'. This signals pure IC track, not senior.","fix":"Rewrite the top 3 resume bullets to lead with ownership: 'Led design and delivery of…', 'Owned the migration from…', 'Drove the decision to…'"}],"rejectionRisk":{"stages":[{"stage":"ATS / Resume Screen","riskLevel":"medium","confidenceLevel":"HIGH","evidenceStrength":"STRONG","headline":"Title mismatch may trigger auto-filter before human review","evidence":["Job requires 'Senior Engineer' equivalent — current title is 'Software Engineer II', a structural mismatch","ATS keyword scan may miss 'distributed systems' if the phrase isn't explicitly present in the resume text"]},{"stage":"Hiring Manager Review","riskLevel":"high","confidenceLevel":"MODERATE","evidenceStrength":"MODERATE","headline":"Ownership narrative gap will be interrogated immediately","evidence":["HM will compare against candidates who have demonstrably led teams or owned entire services end-to-end","Python background in a Go shop signals 60+ days before full productivity — HM wants someone effective in 30"]},{"stage":"Technical Interview","riskLevel":"low","confidenceLevel":"HIGH","evidenceStrength":"STRONG","headline":"Domain knowledge is a genuine differentiator in this loop","evidence":["Data pipeline experience maps directly to the system design questions expected at this seniority level","Latency optimization history will surface strong in infrastructure-focused technical rounds"]}]},"shapeRisk":{"level":"medium","headline":"Specialist shape in a role that rewards generalist signaling","evidence":["Profile reads as deep backend specialist — no signal of cross-functional exposure or upstream product thinking","Zero mention of stakeholder communication, requirements gathering, or driving decisions without direction"],"fix":"Add one bullet per role that references non-engineering collaboration: 'Worked with product to define SLAs for…' or 'Partnered with data science to align schema design with…'"},"evaluators":[{"id":"recruiter","name":"Priya V.","title":"Technical Recruiter","agenda":"Fill the req fast with someone who clears the title bar and won't confuse the committee.","score":55,"confidenceLevel":"HIGH","evidenceStrength":"STRONG","gutTake":"The experience is there, but the title gap is going to make me hesitate before I send this forward. I need the HM to explicitly tell me it's okay to proceed.","objections":["Title doesn't match the level we're actively hiring for — requires HM pre-approval to advance","No public GitHub or portfolio makes it impossible for me to pre-qualify before a technical screen"],"evidence":["Recruiter checklist: title match, years of exp, required tech stack — only 2 of 3 pass cleanly","Portfolio gap is a real blocker at this stage without an internal referral to offset it"]},{"id":"hiring","name":"Marcus T.","title":"Engineering Manager","agenda":"Get someone productive in 30 days who can take full ownership without daily check-ins.","score":63,"confidenceLevel":"MODERATE","evidenceStrength":"MODERATE","gutTake":"The data pipeline work is genuinely interesting. But I need to hear this person say 'I owned it end-to-end' — not 'I was part of the team that built it'. That distinction is everything here.","objections":["Python in a Go shop means at minimum 60 days before full productivity — not acceptable given current team bandwidth","No evidence of having driven independent technical decisions at meaningful scope"],"evidence":["HM values self-directed execution above all — resume shows collaborative contribution, not independent ownership","Tech stack mismatch is a concrete productivity risk the HM will weigh explicitly in the committee meeting"]},{"id":"internal","name":"Sasha R.","title":"Staff Engineer (Technical Loop)","agenda":"Protect the team's technical bar. Deeply skeptical of anyone who can't demonstrate depth fast.","score":58,"confidenceLevel":"MODERATE","evidenceStrength":"MODERATE","gutTake":"The metrics are fine. But 'reduced latency by 40%' is a claim I hear in every interview. I want to know the exact mechanism — what did you change, what did you explicitly not do, and what were the failure modes you considered.","objections":["Quantified metrics without mechanism detail read as rehearsed — will probe hard on system design fundamentals","No OSS or writing samples means I have zero visibility into code quality or architectural reasoning history"],"evidence":["Staff engineers run the technical screen here — they filter hard for depth, not breadth or polish","Without public artifacts, technical quality is entirely unverifiable until the live coding session"]}],"benchmarkProfile":{"title":"The Canonical Senior IC at This Company","summary":"Candidates who consistently advance have shipped features end-to-end with no hand-holding, maintain a public technical presence, and can articulate system tradeoffs without prompting. Most have 5–7 years with at least one tech lead or staff-adjacent credit on their record.","likelySignals":["Active GitHub with recent, substantive, non-tutorial contributions","A technical blog post or conference talk in the last 18 months","At least one clearly stated 'I owned X from design through production' project"],"whereYouCompete":["Domain depth in data infrastructure is rare and directly valued at this company","Delivery metrics are specific and credible — not generic filler","Years of experience clears the floor threshold without question"],"whereYouLag":["No public technical presence vs. shortlisted candidates who have established one","Title differential creates a structural scoring disadvantage in the hiring committee","Language stack mismatch adds perceived ramp risk that other candidates don't carry"],"marketReality":"At Series B companies post-restructure, the bar for new headcount is high and politically charged. Every hire is a budget commitment the team debates. You are competing against candidates who have already de-risked the ownership and productivity questions.","fastestUpgrade":"Publish one technical deep-dive post and rewrite the top 3 resume bullets to lead with ownership language. These two changes address approximately 80% of the stated objections across all three evaluators."},"priorityActions":["Rewrite top 3 resume bullets to lead with ownership language — 'Owned', 'Led', 'Drove' — eliminate 'Contributed to' and 'Helped build' entirely","Publish one technical post on the data pipeline architecture before submitting — link it in the resume header as a 'Technical Writing' entry","Find a referral before applying cold — check LinkedIn for 2nd-degree connections and request a 15-minute informational call to bypass ATS screening"]};
+const DEMO_DATA = {"survivabilityScore":68,"verdict":"Viable but Exposed","recommendation":"Apply with Caution","confidenceLevel":"HIGH","evidenceStrength":"MODERATE","resumeLen":1600,"jdLen":1400,"jdItems":[{"text":"5+ years backend systems experience","tier":"required","centrality":"core","status":"meets"},{"text":"Senior-level ownership of services end-to-end","tier":"required","centrality":"core","status":"partial"},{"text":"Distributed systems / data pipeline experience","tier":"required","centrality":"core","status":"meets"},{"text":"Drives independent technical decisions at scale","tier":"required","centrality":"supporting","status":"missing"},{"text":"Go / Rust production fluency (team stack)","tier":"preferred","centrality":"supporting","status":"missing"},{"text":"Public portfolio / open-source presence","tier":"preferred","centrality":"peripheral","status":"missing"},{"text":"Technical writing / thought leadership","tier":"preferred","centrality":"peripheral","status":"missing"}],"strengths":[{"text":"Deep backend systems experience at scale","centrality":"supporting","mapsToNeed":true},{"text":"Quantified delivery metrics (latency, throughput)","centrality":"supporting","mapsToNeed":true},{"text":"Data-infrastructure domain knowledge","centrality":"supporting","mapsToNeed":true}],"angle":"Strong execution background, weak on leadership and ownership signals","hook":"Deep IC contributor with tangible delivery record — but gaps in scope narrative and public presence will surface fast in committee review.","bestPathIn":{"path":"Direct application + internal referral from existing engineering team member","reason":"Recruiter screen will likely flag the title gap. An internal referral bypasses the ATS cold-open and gets the resume into hiring manager hands directly.","firstMove":"Identify 2nd-degree LinkedIn connections at the company before submitting. Request a 15-minute informational call first."},"companyReality":{"read":"Series B startup, ~60-person eng org, recently restructured after layoffs 8 months ago. Hiring for execution now, not exploration. Every new headcount is a committee debate.","risk":"Post-layoff orgs carry political scar tissue. New hires face heightened scrutiny from surviving senior engineers who now own more surface area and are protective of team quality.","watchFor":["Long interview loops (6+ rounds) signal indecisiveness — an internal candidate may already exist","Multiple rounds with same-level ICs is a tell that hiring authority is unclear","Vague answers on team structure suggest the reorg is still actively settling"]},"strategicBrief":{"credibility":["3 years of backend systems work at scale is directly legible to a hiring engineer in this domain","The data pipeline project aligns precisely with the core technical requirements stated in the JD","Measurable delivery metrics (latency reduction, throughput increase) will survive recruiter-level screening"],"risks":["No tech lead or staff-level title — will benchmark below the target for a mid-senior IC role","Python-heavy profile in a Go/Rust shop raises a quiet execution risk flag in the hiring manager's mind","No public portfolio or open-source signal makes the technical quality claim completely unverifiable pre-screen"]},"signalDeficits":[{"signal":"TECHNICAL WRITING / PUBLIC PORTFOLIO","whyItMatters":"Hiring managers at this level want proof of thought leadership. No blog, no talks, no OSS contributions means the technical quality claim is entirely unverifiable.","fix":"Publish one technical deep-dive on the data pipeline architecture before applying. Link it in the resume header under a 'Technical Writing' field."},{"signal":"OWNERSHIP SCOPE LANGUAGE","whyItMatters":"Every bullet reads as 'I contributed to X' or 'I helped build Y'. Zero instances of 'I owned', 'I led', or 'I decided'. This signals pure IC track, not senior.","fix":"Rewrite the top 3 resume bullets to lead with ownership: 'Led design and delivery of…', 'Owned the migration from…', 'Drove the decision to…'"}],"rejectionRisk":{"stages":[{"stage":"ATS / Resume Screen","riskLevel":"medium","confidenceLevel":"HIGH","evidenceStrength":"STRONG","headline":"Title mismatch may trigger auto-filter before human review","evidence":["Job requires 'Senior Engineer' equivalent — current title is 'Software Engineer II', a structural mismatch","ATS keyword scan may miss 'distributed systems' if the phrase isn't explicitly present in the resume text"]},{"stage":"Hiring Manager Review","riskLevel":"high","confidenceLevel":"MODERATE","evidenceStrength":"MODERATE","headline":"Ownership narrative gap will be interrogated immediately","evidence":["HM will compare against candidates who have demonstrably led teams or owned entire services end-to-end","Python background in a Go shop signals 60+ days before full productivity — HM wants someone effective in 30"]},{"stage":"Technical Interview","riskLevel":"low","confidenceLevel":"HIGH","evidenceStrength":"STRONG","headline":"Domain knowledge is a genuine differentiator in this loop","evidence":["Data pipeline experience maps directly to the system design questions expected at this seniority level","Latency optimization history will surface strong in infrastructure-focused technical rounds"]}]},"shapeRisk":{"level":"medium","headline":"Specialist shape in a role that rewards generalist signaling","evidence":["Profile reads as deep backend specialist — no signal of cross-functional exposure or upstream product thinking","Zero mention of stakeholder communication, requirements gathering, or driving decisions without direction"],"fix":"Add one bullet per role that references non-engineering collaboration: 'Worked with product to define SLAs for…' or 'Partnered with data science to align schema design with…'"},"evaluators":[{"id":"recruiter","name":"Priya V.","title":"Technical Recruiter","agenda":"Fill the req fast with someone who clears the title bar and won't confuse the committee.","score":55,"confidenceLevel":"HIGH","evidenceStrength":"STRONG","gutTake":"The experience is there, but the title gap is going to make me hesitate before I send this forward. I need the HM to explicitly tell me it's okay to proceed.","objections":["Title doesn't match the level we're actively hiring for — requires HM pre-approval to advance","No public GitHub or portfolio makes it impossible for me to pre-qualify before a technical screen"],"evidence":["Recruiter checklist: title match, years of exp, required tech stack — only 2 of 3 pass cleanly","Portfolio gap is a real blocker at this stage without an internal referral to offset it"]},{"id":"hiring","name":"Marcus T.","title":"Engineering Manager","agenda":"Get someone productive in 30 days who can take full ownership without daily check-ins.","score":63,"confidenceLevel":"MODERATE","evidenceStrength":"MODERATE","gutTake":"The data pipeline work is genuinely interesting. But I need to hear this person say 'I owned it end-to-end' — not 'I was part of the team that built it'. That distinction is everything here.","objections":["Python in a Go shop means at minimum 60 days before full productivity — not acceptable given current team bandwidth","No evidence of having driven independent technical decisions at meaningful scope"],"evidence":["HM values self-directed execution above all — resume shows collaborative contribution, not independent ownership","Tech stack mismatch is a concrete productivity risk the HM will weigh explicitly in the committee meeting"]},{"id":"internal","name":"Sasha R.","title":"Staff Engineer (Technical Loop)","agenda":"Protect the team's technical bar. Deeply skeptical of anyone who can't demonstrate depth fast.","score":58,"confidenceLevel":"MODERATE","evidenceStrength":"MODERATE","gutTake":"The metrics are fine. But 'reduced latency by 40%' is a claim I hear in every interview. I want to know the exact mechanism — what did you change, what did you explicitly not do, and what were the failure modes you considered.","objections":["Quantified metrics without mechanism detail read as rehearsed — will probe hard on system design fundamentals","No OSS or writing samples means I have zero visibility into code quality or architectural reasoning history"],"evidence":["Staff engineers run the technical screen here — they filter hard for depth, not breadth or polish","Without public artifacts, technical quality is entirely unverifiable until the live coding session"]}],"benchmarkProfile":{"title":"The Canonical Senior IC at This Company","summary":"Candidates who consistently advance have shipped features end-to-end with no hand-holding, maintain a public technical presence, and can articulate system tradeoffs without prompting. Most have 5–7 years with at least one tech lead or staff-adjacent credit on their record.","likelySignals":["Active GitHub with recent, substantive, non-tutorial contributions","A technical blog post or conference talk in the last 18 months","At least one clearly stated 'I owned X from design through production' project"],"whereYouCompete":["Domain depth in data infrastructure is rare and directly valued at this company","Delivery metrics are specific and credible — not generic filler","Years of experience clears the floor threshold without question"],"whereYouLag":["No public technical presence vs. shortlisted candidates who have established one","Title differential creates a structural scoring disadvantage in the hiring committee","Language stack mismatch adds perceived ramp risk that other candidates don't carry"],"marketReality":"At Series B companies post-restructure, the bar for new headcount is high and politically charged. Every hire is a budget commitment the team debates. You are competing against candidates who have already de-risked the ownership and productivity questions.","fastestUpgrade":"Publish one technical deep-dive post and rewrite the top 3 resume bullets to lead with ownership language. These two changes address approximately 80% of the stated objections across all three evaluators."},"priorityActions":["Rewrite top 3 resume bullets to lead with ownership language — 'Owned', 'Led', 'Drove' — eliminate 'Contributed to' and 'Helped build' entirely","Publish one technical post on the data pipeline architecture before submitting — link it in the resume header as a 'Technical Writing' entry","Find a referral before applying cold — check LinkedIn for 2nd-degree connections and request a 15-minute informational call to bypass ATS screening"]};
 
 function saveApiKey() {
   const inputKey = document.getElementById('apiKeyInput').value.trim();
@@ -1219,7 +1226,7 @@ function metaChipsHTML(confidence, evidence) {
 function evidenceHTML(items) {
   if (!items || !items.length) return '';
   return `<div class="evidence-block">
-    <div class="evidence-label">Direct Empirical Evidence</div>
+    <div class="evidence-label">Why We Think This</div>
     ${items.slice(0,2).map(e=>`<div class="evidence-item">${e}</div>`).join('')}
   </div>`;
 }
@@ -1333,6 +1340,123 @@ async function fetchWithBackoff(url, options, maxRetries = 5) {
   throw new Error("Maximum retry threshold exceeded.");
 }
 
+/* ===== SCORING BRAIN — required/preferred + centrality + cap + floor =====
+   The model LABELS (jdItems / strengths); this computes the score.
+   Edit only the constants at the top to tune behaviour. ===== */
+const TIER_W   = { required: 1.0, preferred: 0.35 };
+const CENT_W   = { core: 1.0, supporting: 0.6, peripheral: 0.3 };
+const STATUS_F = { missing: 1.0, partial: 0.5, meets: 0.0 };
+const EDGE_BONUS    = { core: 12, supporting: 6, peripheral: 0, none: 0 };
+const REALISM_CEIL  = 95;   // the room is never a sure thing
+const CAP_VALUE     = 45;   // required-gate cap
+const TIE_FACTOR    = 1.3;  // edge-vs-gap dominance threshold
+
+function _itemWeight(it) {
+  const t = TIER_W[it.tier] != null ? TIER_W[it.tier] : TIER_W.required;
+  const c = CENT_W[it.centrality] != null ? CENT_W[it.centrality] : CENT_W.supporting;
+  return t * c;
+}
+function _computeGaps(jdItems) {
+  let G = 0, total = 0;
+  (jdItems || []).forEach(it => {
+    const w = _itemWeight(it);
+    total += w;
+    G += w * (STATUS_F[it.status] != null ? STATUS_F[it.status] : 0);
+  });
+  return { G, total, gNorm: total > 0 ? G / total : 0 };
+}
+function _computeStrength(strengths) {
+  let S = 0, best = 'none';
+  const rank = { core: 3, supporting: 2, peripheral: 1, none: 0 };
+  (strengths || []).forEach(s => {
+    if (!s.mapsToNeed) return;
+    S += (CENT_W[s.centrality] != null ? CENT_W[s.centrality] : CENT_W.supporting);
+    if (rank[s.centrality] > rank[best]) best = s.centrality;
+  });
+  return { S, best };
+}
+function _requiredCoreMissing(jdItems) {
+  return (jdItems || []).filter(it =>
+    it.tier === 'required' &&
+    (it.centrality === 'core' || it.centrality === 'supporting') &&
+    it.status === 'missing'
+  ).length;
+}
+function _confidence(o) {
+  if ((o.jdItemCount || 0) < 3) return 'low';
+  if ((o.resumeLen || 0) < 200) return 'low';
+  if ((o.jdLen || 0) < 200)     return 'low';
+  return 'ok';
+}
+function _edgeVsGap(S, G) {
+  if (S > TIE_FACTOR * G) return 'edge';
+  if (G > TIE_FACTOR * S) return 'gap';
+  return 'balanced';
+}
+function _tallyVote(evaluators) {
+  let apply = 0, skip = 0;
+  (evaluators || []).forEach(e => {
+    const l = (e.lean || '').toLowerCase();
+    if (l.indexOf('skip') !== -1) skip++;
+    else if (l.indexOf('apply') !== -1) apply++;
+  });
+  return { apply, skip };
+}
+function computeScore(model) {
+  const gaps = _computeGaps(model.jdItems);
+  const str  = _computeStrength(model.strengths);
+
+  const base  = 100 * (1 - gaps.gNorm);
+  const bonus = EDGE_BONUS[str.best] || 0;
+  let score = Math.min(REALISM_CEIL, base + bonus);
+  score = Math.max(0, score);
+
+  // Guard 1 — required-gate cap (preferred items can NEVER trigger this)
+  const reqMiss = _requiredCoreMissing(model.jdItems);
+  let capped = false, capReason = '';
+  if (reqMiss >= 2) {
+    capped = true;
+    if (score > CAP_VALUE) score = CAP_VALUE;
+    capReason = reqMiss + ' core required qualifications unmet — score capped regardless of other strengths.';
+  }
+
+  // Guard 3 — confidence floor (thin inputs can't produce an extreme verdict)
+  const conf = _confidence({
+    jdItemCount: (model.jdItems || []).length,
+    resumeLen: model.resumeLen || 0,
+    jdLen: model.jdLen || 0,
+  });
+  let lowConfidence = false;
+  if (conf === 'low') { lowConfidence = true; score = Math.max(40, Math.min(65, score)); }
+
+  score = Math.round(score);
+
+  const evg  = _edgeVsGap(str.S, gaps.G);
+  const vote = _tallyVote((model.evaluators || []).filter(e => e.id !== 'benchmark'));
+
+  let recommendation;
+  if (vote.skip >= 2 || (capped && vote.apply < 2)) recommendation = 'Do Not Apply';
+  else if (vote.apply >= 2) recommendation = (evg === 'edge' && !capped) ? 'Apply' : 'Apply with Caution';
+  else recommendation = (evg === 'edge') ? 'Apply with Caution' : 'Do Not Apply';
+
+  let verdict;
+  if (score >= 75) verdict = 'Strong Candidate';
+  else if (score >= 55) verdict = 'Viable but Exposed';
+  else if (score >= 35) verdict = 'Long Shot';
+  else verdict = 'Do Not Apply';
+  if (vote.skip >= 2 && (verdict === 'Strong Candidate' || verdict === 'Viable but Exposed')) verdict = 'Long Shot';
+
+  const divergent = vote.apply >= 1 && vote.skip >= 1;
+
+  return {
+    score, base: Math.round(base), bonus,
+    gWeighted: +gaps.G.toFixed(2), sWeighted: +str.S.toFixed(2),
+    edgeVsGap: evg, capped, capReason, lowConfidence,
+    vote, recommendation, verdict, divergent, reqMiss,
+  };
+}
+/* ===== END SCORING BRAIN ===== */
+
 async function runBrief() {
   const jd = document.getElementById('jdInput').value.trim();
   const resume = document.getElementById('resumeInput').value.trim();
@@ -1377,14 +1501,18 @@ For Evaluators:
 - hiring: wants immediate execution value, team relief. Fears someone who requires 90 days to hold their own.
 - internal: wants territory defense, status quo preservation, direct peer comparisons. Skeptical of external hires.
 
-Ensure every string is clean plain text. Keep descriptions under 180 characters. Output exact fields requested in the structured schema.`;
+Ensure every string is clean plain text. Keep descriptions under 180 characters. Output exact fields requested in the structured schema. You MUST include exactly 3 evaluators with ids "recruiter", "hiring", and "internal" — all three are required, never omit any.
 
-  const userQuery = `JOB SPECIFICATIONS:\n${jd}\n\n---\n\nCANDIDATE RESUME:\n${resume}\n\n---\n\nRespond with a single JSON object only. No explanation, no markdown, no code fences. Use exactly this structure:\n{"survivabilityScore":integer,"verdict":"string","recommendation":"string","confidenceLevel":"string","evidenceStrength":"string","angle":"string","hook":"string","bestPathIn":{"path":"string","reason":"string","firstMove":"string"},"companyReality":{"read":"string","risk":"string","watchFor":["string"]},"strategicBrief":{"credibility":["string"],"risks":["string"]},"signalDeficits":[{"signal":"string","whyItMatters":"string","fix":"string"}],"rejectionRisk":{"stages":[{"stage":"string","riskLevel":"string","confidenceLevel":"string","evidenceStrength":"string","headline":"string","evidence":["string"]}]},"shapeRisk":{"level":"string","headline":"string","evidence":["string"],"fix":"string"},"evaluators":[{"id":"string","name":"string","title":"string","agenda":"string","score":integer,"confidenceLevel":"string","evidenceStrength":"string","gutTake":"string","objections":["string"],"evidence":["string"]}],"benchmarkProfile":{"title":"string","summary":"string","likelySignals":["string"],"whereYouCompete":["string"],"whereYouLag":["string"],"marketReality":"string","fastestUpgrade":"string"},"priorityActions":["string"]}\n\nReturn arrays with EXACTLY these item counts and no more: strategicBrief.credibility 3, strategicBrief.risks 3, each evaluator's objections 2, benchmarkProfile.whereYouCompete 3, benchmarkProfile.whereYouLag 3, benchmarkProfile.likelySignals 3, priorityActions 3.`;
+LABELING (this drives the computed survivability score — label honestly even when it helps the candidate):
+jdItems: break the JD into real line-items. tier = required or preferred, from the JD OWN words (required / must have / minimum / X+ years => required; preferred / strongly preferred / a plus / nice to have / bonus / ideally / a major advantage => preferred; strongly preferred is STILL preferred; ambiguous => preferred). centrality = core (what the role primarily exists to do) / supporting / peripheral, judged against THIS role primary function (a tool or framework is usually peripheral for a judgment or design role). status = meets / partial / missing, strictly from the resume; vocabulary overlap is not meets.
+strengths: the candidate real strengths for this role, each with centrality (core/supporting/peripheral) and mapsToNeed (true only if it answers a real JD need).
+Framing: a PREFERRED gap is friction to neutralize, never a disqualifier. Never call a preferred gap table stakes, a bottleneck, or a wall. A REQUIRED gap on a core or supporting item is a real gate.`;
+
+  const userQuery = `JOB SPECIFICATIONS:\n${jd}\n\n---\n\nCANDIDATE RESUME:\n${resume}\n\n---\n\nRespond with a single JSON object only. No explanation, no markdown, no code fences. Use exactly this structure:\n{"survivabilityScore":integer,"jdItems":[{"text":"string","tier":"required|preferred","centrality":"core|supporting|peripheral","status":"meets|partial|missing"}],"strengths":[{"text":"string","centrality":"core|supporting|peripheral","mapsToNeed":true}],"verdict":"string","recommendation":"string","confidenceLevel":"string","evidenceStrength":"string","angle":"string","hook":"string","bestPathIn":{"path":"string","reason":"string","firstMove":"string"},"companyReality":{"read":"string","risk":"string","watchFor":["string"]},"strategicBrief":{"credibility":["string"],"risks":["string"]},"signalDeficits":[{"signal":"string","whyItMatters":"string","fix":"string"}],"rejectionRisk":{"stages":[{"stage":"string","riskLevel":"string","confidenceLevel":"string","evidenceStrength":"string","headline":"string","evidence":["string"]}]},"shapeRisk":{"level":"string","headline":"string","evidence":["string"],"fix":"string"},"evaluators":[{"id":"string","name":"string","title":"string","agenda":"string","score":integer,"confidenceLevel":"string","evidenceStrength":"string","gutTake":"string","objections":["string"],"evidence":["string"]}],"benchmarkProfile":{"title":"string","summary":"string","likelySignals":["string"],"whereYouCompete":["string"],"whereYouLag":["string"],"marketReality":"string","fastestUpgrade":"string"},"priorityActions":["string"]}`;
 
   const requestPayload = {
     model: "claude-sonnet-4-5",
-    max_tokens: 8000,
-    stream: true,
+    max_tokens: 16000,
     system: systemPrompt,
     messages: [{ role: "user", content: userQuery }]
   };
@@ -1411,42 +1539,25 @@ Ensure every string is clean plain text. Keep descriptions under 180 characters.
       throw new Error(`Inference engine connection failure: STATUS ${response.status}`);
     }
 
-    if (rafId) cancelAnimationFrame(rafId);
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let rawText = '', buffer = '';
-    const EXPECTED_CHARS = 19000;
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop();
-      for (const line of lines) {
-        if (!line.startsWith('data:')) continue;
-        const payload = line.slice(5).trim();
-        if (payload === '[DONE]') continue;
-        try {
-          const evt = JSON.parse(payload);
-          if (evt.type === 'content_block_delta' && evt.delta?.text) {
-            rawText += evt.delta.text;
-            const pct = Math.min(95, (rawText.length / EXPECTED_CHARS) * 100);
-            document.getElementById('loadingPercent').textContent = Math.floor(pct) + '%';
-            let msg = loadingMessages[0].text;
-            for (const m of loadingMessages) { if (Math.floor(pct) >= m.threshold) msg = m.text; }
-            document.getElementById('loadingStatus').textContent = msg;
-            drawLoadingArc(pct);
-          }
-        } catch (_) {}
-      }
-    }
+    const result = await response.json();
+    const rawText = result?.content?.[0]?.text;
 
     if (!rawText) {
       throw new Error("Diagnostic report generated empty content payload.");
     }
+
     const cleaned = rawText.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/,'');
     const parsedData = JSON.parse(cleaned);
+    // ── deterministic scoring: the model labelled; the number is COMPUTED ──
+    if (parsedData.jdItems && parsedData.jdItems.length) {
+      const _vote = (parsedData.evaluators || []).map(e => ({ id: e.id, lean: (e.score ?? 50) >= 55 ? "apply" : "skip" }));
+      const _b = computeScore({ jdItems: parsedData.jdItems, strengths: parsedData.strengths, evaluators: _vote, resumeLen: resume.length, jdLen: jd.length });
+      parsedData.survivabilityScore = _b.score;
+      parsedData.recommendation     = _b.recommendation;
+      parsedData.verdict            = _b.verdict;
+      if (_b.lowConfidence) parsedData.confidenceLevel = "low";
+      parsedData._brain = _b;
+    }
     render(parsedData);
     finishStepper();
 
@@ -1478,7 +1589,17 @@ function runDemo() {
 
   // Short fake delay so the loading animation actually plays
   setTimeout(() => {
-    render(DEMO_DATA);
+    const demo = JSON.parse(JSON.stringify(DEMO_DATA));
+    // route the demo through the SAME engine a real run uses — genuine output, not a fake number
+    if (demo.jdItems && demo.jdItems.length) {
+      const _vote = (demo.evaluators || []).map(e => ({ id: e.id, lean: (e.score ?? 50) >= 55 ? "apply" : "skip" }));
+      const _b = computeScore({ jdItems: demo.jdItems, strengths: demo.strengths, evaluators: _vote, resumeLen: demo.resumeLen || 1500, jdLen: demo.jdLen || 1400 });
+      demo.survivabilityScore = _b.score;
+      demo.recommendation     = _b.recommendation;
+      demo.verdict            = _b.verdict;
+      demo._brain = _b;
+    }
+    render(demo);
     finishStepper();
     setTimeout(() => {
       document.getElementById('stage-loading').classList.remove('active');
@@ -1600,11 +1721,11 @@ function render(d) {
       <div class="signal-deficit">
         <div class="signal-name">${s.signal||''}</div>
         <div>
-          <div class="signal-meta-label">Structural Vulnerability</div>
+          <div class="signal-meta-label">Why This Matters</div>
           <div class="signal-meta">${s.whyItMatters||''}</div>
         </div>
         <div>
-          <div class="signal-meta-label">Tactical Remediation</div>
+          <div class="signal-meta-label">How To Fix It</div>
           <div class="signal-fix">${s.fix||''}</div>
         </div>
       </div>`).join('');
@@ -1617,7 +1738,8 @@ function render(d) {
   const stagesEl = document.getElementById('riskStages');
   stagesEl.innerHTML = '';
   (d.rejectionRisk?.stages||[]).forEach(s => {
-    const lv = (s.riskLevel||'medium').toLowerCase();
+    const rawLevel = (s.riskLevel||'medium');
+    const lv = normRisk(rawLevel);
     const pct = RISK_SCORE[lv] || 48;
     const card = document.createElement('div');
     card.className = 'risk-stage-card';
@@ -1631,7 +1753,7 @@ function render(d) {
               <div class="risk-bar-fill ${lv}" style="width:${pct}%"></div>
             </div>
           </div>
-          <div class="risk-pill ${lv}">${lv}</div>
+          <div class="risk-pill ${lv}">${rawLevel}</div>
         </div>
         ${metaChipsHTML(s.confidenceLevel, s.evidenceStrength)}
       </div>
@@ -1682,7 +1804,7 @@ function render(d) {
   evalOrder.forEach(id => {
     const ev = (d.evaluators||[]).find(e => e.id === id);
     if (!ev) return;
-    const sc2 = scoreClass(ev.score ?? 50);
+    const verdict = evalVerdict(ev.score);
     const card = document.createElement('div');
     card.className = 'eval-card';
 
@@ -1693,19 +1815,18 @@ function render(d) {
           <div class="eval-name">${ev.name || '—'}</div>
           <div class="eval-title">${ev.title || '—'}</div>
           <div class="eval-agenda">
-            <div class="eval-agenda-label">Core Agenda Objective</div>
+            <div class="eval-agenda-label">What They Care About</div>
             ${ev.agenda || ''}
           </div>
         </div>
-        <div class="eval-score-wrap ${sc2}">
-          <div class="eval-score-num">${ev.score ?? '—'}</div>
-          <div class="eval-score-label">score tier</div>
+        <div class="eval-verdict-wrap">
+          <span class="eval-verdict-badge ${verdict.cls}">${verdict.label}</span>
         </div>
       </div>
       <div class="eval-card-body">
         ${metaChipsHTML(ev.confidenceLevel, ev.evidenceStrength)}
         <div class="eval-take">${ev.gutTake || ''}</div>
-        <div class="eval-objections-label">Projected Objections</div>
+        <div class="eval-objections-label">Questions They'll Probably Ask You</div>
         <div class="eval-objections">
           ${(ev.objections||[]).slice(0,2).map(o=>`<div class="eval-objection">${o}</div>`).join('')}
         </div>
