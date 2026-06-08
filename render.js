@@ -7,7 +7,7 @@
 
 const CIRCUMFERENCE = 345.58;
 const RISK_SCORE = { low:18, medium:48, high:76, critical:94 };
-const ALL_SECTION_IDS = ['section-hero','section-benchmark','section-company','section01','section-signals','section02','section-shaperisk','section03','section-actions'];
+const ALL_SECTION_IDS = ['section-hero','section-committee-read','section-benchmark','section-company','section01','section-signals','section02','section-shaperisk','section03','section-actions'];
 // Sections collapsed by default — the hero, best-path, and "Fix These" stay open so a skimmer
 // gets verdict + odds + the one action without scrolling. Depth is one tap away.
 const COLLAPSIBLE_IDS = ['section-benchmark','section-company','section01','section-signals','section02','section03'];
@@ -193,6 +193,24 @@ function render(d) {
     [d.confidenceLevel ? `<span class="meta-chip">CONFIDENCE: ${d.confidenceLevel}</span>` : '',
      d.evidenceStrength ? `<span class="meta-chip">EVIDENCE STRENGTH: ${d.evidenceStrength}</span>` : '']
     .filter(Boolean).join('');
+
+  // Committee Read
+  const commSection = document.getElementById('section-committee-read');
+  if (d.committeeRead) {
+    document.getElementById('committeeReadText').textContent = d.committeeRead;
+    const evals = d.evaluators || [];
+    const advCount = evals.filter(e => (e.score ?? 0) >= 55).length;
+    let tallyHTML = `<span class="committee-vote-count">${advCount} of ${evals.length} would advance</span>`;
+    evals.forEach(ev => {
+      const lean = (ev.score ?? 0) >= 55 ? 'advance' : 'cut';
+      const leanLabel = (ev.score ?? 0) >= 55 ? 'Advance' : 'Pass';
+      tallyHTML += ` <span class="eval-verdict-badge ${lean}">${ev.name || ev.id} — ${leanLabel}</span>`;
+    });
+    document.getElementById('committeeTally').innerHTML = tallyHTML;
+    commSection.style.display = '';
+  } else {
+    commSection.style.display = 'none';
+  }
 
   // Access Strategy Path
   const bpi = d.bestPathIn || {};

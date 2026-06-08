@@ -783,6 +783,35 @@
 
   .benchmark-header-tag { font-family: var(--font-mono); font-size: 0.65rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
 
+  /* --- COMMITTEE READ --- */
+  .committee-read-body {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+  }
+  .committee-read-text {
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+    margin-bottom: 1.25rem;
+  }
+  .committee-tally {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .committee-vote-count {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-right: 0.25rem;
+  }
+
   /* --- CALIBRATION: TARGET PROFILE BENCHMARK --- */
   .bench-intro {
     font-family: var(--font-mono);
