@@ -239,7 +239,7 @@ async function runBrief() {
 
   const requestPayload = {
     model: "claude-sonnet-4-5",
-    max_tokens: 6000,
+    max_tokens: 16000,
     system: systemPrompt,
     messages: [{ role: "user", content: userQuery }]
   };
