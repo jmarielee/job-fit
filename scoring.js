@@ -177,6 +177,8 @@ For Evaluators (Mode 2):
 - hiring: wants immediate execution value, team relief. Fears someone who requires 90 days to hold their own.
 - internal: wants territory defense, status quo preservation, direct peer comparisons. Skeptical of external hires.
 
+DOMAIN ADAPTATION — the three evaluators are fixed ROLES, not fixed people. Keep their core motivations constant (recruiter = gatekeeping, slate quality, legibility; hiring = execution risk, ramp time, delivery; internal = territory, peer comparison, status), but derive each evaluator's job title, vocabulary, and specific fears from the actual field of the role in the job description. Examples: for a physician role, the hiring manager is a department chair or CMO weighing clinical competence and liability, and the internal is a peer attending guarding the service line; for an HR generalist, the hiring manager is an HR director weighing compliance and culture fit, and the internal is a senior generalist protecting established process; for a teacher, a principal and a department lead; for sales, a sales director and a top-quota rep. Never use engineering titles unless the role is actually in engineering. The three ids must remain exactly "recruiter", "hiring", and "internal".
+
 Ensure every string is clean plain text. Output exact fields requested in the structured schema. You MUST include exactly 3 evaluators with ids "recruiter", "hiring", and "internal" — all three are required, never omit any.
 
 COMPRESSION — applies to EVERY narrative field. People skim; long fields get skipped:
