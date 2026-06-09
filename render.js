@@ -203,11 +203,18 @@ function render(d) {
     const advCount   = evalResults.filter(r => r.verdict.cls === 'advance').length;
     const fenceCount = evalResults.filter(r => r.verdict.cls === 'fence').length;
     const cutCount   = evalResults.filter(r => r.verdict.cls === 'cut').length;
-    let tallyHTML = `<div class="committee-count-row">`
-                  + `<span class="eval-verdict-badge advance">${advCount} advance</span>`
-                  + `<span class="eval-verdict-badge fence">${fenceCount} on the fence</span>`
-                  + `<span class="eval-verdict-badge cut">${cutCount} would cut</span>`
-                  + `</div>`;
+    const populatedBuckets = [advCount, fenceCount, cutCount].filter(n => n > 0).length;
+    let tallyHTML = '';
+    if (populatedBuckets > 1) {
+      const advCls   = advCount   === 0 ? 'count-segment advance zero' : 'count-segment advance';
+      const fenceCls = fenceCount === 0 ? 'count-segment fence zero'   : 'count-segment fence';
+      const cutCls   = cutCount   === 0 ? 'count-segment cut zero'     : 'count-segment cut';
+      tallyHTML = `<div class="committee-count-strip">`
+                + `<span class="${advCls}">${advCount} advance</span>`
+                + `<span class="${fenceCls}">${fenceCount} on the fence</span>`
+                + `<span class="${cutCls}">${cutCount} would cut</span>`
+                + `</div>`;
+    }
     evalResults.forEach(({ ev, verdict }) => {
       const nameRole = ev.name ? `${ev.name}${ev.title ? ' · ' + ev.title : ''}` : ev.id;
       tallyHTML += `<div class="committee-eval-row">`

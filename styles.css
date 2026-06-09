@@ -13,6 +13,7 @@
     --text-primary: #0f172a;
     --text-secondary: #334155;
     --text-muted: #64748b;
+    --border-subtle: #e2e8f0;
 
     /* High-Contrast Hazard & Threat States */
     --risk-critical: #e11d48;
@@ -368,7 +369,7 @@
     background: var(--bg-main);
   }
   .score-svg { width: 130px; height: 130px; }
-  .score-track { fill: none; stroke: #e2e8f0; stroke-width: 6; }
+  .score-track { fill: none; stroke: var(--border-subtle); stroke-width: 6; }
   .score-arc {
     fill: none;
     stroke: var(--border-color);
@@ -799,18 +800,33 @@
   .committee-tally {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
   }
-  .committee-count-row {
+  .committee-count-strip {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    width: fit-content;
+    border: 1px solid var(--border-color);
+    margin-bottom: 0.75rem;
   }
+  .count-segment {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 0.3rem 0.7rem;
+    white-space: nowrap;
+    border-right: 1px solid var(--border-color);
+  }
+  .count-segment:last-child { border-right: none; }
+  .count-segment.advance { background: var(--risk-low-bg); color: var(--risk-low); }
+  .count-segment.fence   { background: var(--risk-medium-bg); color: #856404; }
+  .count-segment.cut     { background: var(--risk-critical-bg); color: var(--risk-critical); }
+  .count-segment.zero    { background: var(--bg-surface); color: var(--text-muted); }
   .committee-eval-row {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    padding: 0.4rem 0;
+    border-top: 1px solid var(--border-subtle);
   }
   .committee-eval-name {
     font-family: var(--font-mono);
@@ -819,7 +835,12 @@
     text-transform: uppercase;
     letter-spacing: 0.03em;
     color: var(--text-muted);
-    min-width: 14rem;
+    flex: 1;
+  }
+  .committee-eval-row .eval-verdict-badge {
+    min-width: 132px;
+    text-align: center;
+    flex-shrink: 0;
   }
 
   /* --- CALIBRATION: TARGET PROFILE BENCHMARK --- */
