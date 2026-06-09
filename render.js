@@ -203,11 +203,17 @@ function render(d) {
     const advCount   = evalResults.filter(r => r.verdict.cls === 'advance').length;
     const fenceCount = evalResults.filter(r => r.verdict.cls === 'fence').length;
     const cutCount   = evalResults.filter(r => r.verdict.cls === 'cut').length;
-    let tallyHTML = `<span class="eval-verdict-badge advance">${advCount} advance</span> `
-                  + `<span class="eval-verdict-badge fence">${fenceCount} on the fence</span> `
-                  + `<span class="eval-verdict-badge cut">${cutCount} would cut</span>`;
+    let tallyHTML = `<div class="committee-count-row">`
+                  + `<span class="eval-verdict-badge advance">${advCount} advance</span>`
+                  + `<span class="eval-verdict-badge fence">${fenceCount} on the fence</span>`
+                  + `<span class="eval-verdict-badge cut">${cutCount} would cut</span>`
+                  + `</div>`;
     evalResults.forEach(({ ev, verdict }) => {
-      tallyHTML += ` <span class="eval-verdict-badge ${verdict.cls}">${ev.name || ev.id} — ${verdict.label}</span>`;
+      const nameRole = ev.name ? `${ev.name}${ev.title ? ' · ' + ev.title : ''}` : ev.id;
+      tallyHTML += `<div class="committee-eval-row">`
+                 + `<span class="committee-eval-name">${nameRole}</span>`
+                 + `<span class="eval-verdict-badge ${verdict.cls}">${verdict.label}</span>`
+                 + `</div>`;
     });
     document.getElementById('committeeTally').innerHTML = tallyHTML;
     commSection.style.display = '';

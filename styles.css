@@ -798,18 +798,28 @@
   }
   .committee-tally {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
+    flex-direction: column;
     gap: 0.5rem;
   }
-  .committee-vote-count {
+  .committee-count-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .committee-eval-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .committee-eval-name {
     font-family: var(--font-mono);
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.03em;
     color: var(--text-muted);
-    margin-right: 0.25rem;
+    min-width: 14rem;
   }
 
   /* --- CALIBRATION: TARGET PROFILE BENCHMARK --- */
