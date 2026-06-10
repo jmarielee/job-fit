@@ -45,6 +45,21 @@ function initials(name) {
   if (!name) return '?';
   return name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
 }
+function copyOpener() {
+  const body = document.getElementById('openerBody');
+  const btn  = document.getElementById('openerCopyBtn');
+  if (!body) return;
+  const text = body.textContent || '';
+  const done = () => { if (btn) { const o = btn.textContent; btn.textContent = 'Copied'; setTimeout(() => btn.textContent = o, 1500); } };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => {});
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+}
 function metaChipsHTML(confidence, evidence) {
   const chips = [];
   if (confidence) chips.push(`<span class="meta-chip">conf: ${confidence}</span>`);
@@ -194,27 +209,30 @@ function render(d) {
      d.evidenceStrength ? `<span class="meta-chip">EVIDENCE STRENGTH: ${d.evidenceStrength}</span>` : '']
     .filter(Boolean).join('');
 
+  // THE GATE — loud, single screen-out risk (deterministic, from the scoring brain)
+  const gateFlag = document.getElementById('gateFlag');
+  const gate = d._brain && d._brain.gate;
+  if (gate) {
+    const statusWord = gate.status === 'partial' ? 'stated but not demonstrated' : 'no evidence in your resume';
+    document.getElementById('gateFlagText').textContent = gate.text;
+    document.getElementById('gateFlagNote').textContent =
+      `Required, ${gate.centrality} to the role, ${statusWord}. A screen runs on requirements like this before a human ever weighs the rest of your fit. Neutralize it before you apply.`;
+    gateFlag.style.display = '';
+  } else {
+    gateFlag.style.display = 'none';
+  }
+
   // Committee Read
   const commSection = document.getElementById('section-committee-read');
   if (d.committeeRead) {
     document.getElementById('committeeReadText').textContent = d.committeeRead;
-    const evals = d.evaluators || [];
+    // Lock the tally to the same recruiter→hiring→internal order the cards use,
+    // so the room reads top-down in one consistent order regardless of model output order.
+    const EVAL_ORDER = ['recruiter','hiring','internal'];
+    const _ord = id => { const i = EVAL_ORDER.indexOf(id); return i === -1 ? 99 : i; };
+    const evals = (d.evaluators || []).slice().sort((a,b) => _ord(a.id) - _ord(b.id));
     const evalResults = evals.map(ev => ({ ev, verdict: evalVerdict(ev.score) }));
-    const advCount   = evalResults.filter(r => r.verdict.cls === 'advance').length;
-    const fenceCount = evalResults.filter(r => r.verdict.cls === 'fence').length;
-    const cutCount   = evalResults.filter(r => r.verdict.cls === 'cut').length;
-    const populatedBuckets = [advCount, fenceCount, cutCount].filter(n => n > 0).length;
     let tallyHTML = '';
-    if (populatedBuckets > 1) {
-      const advCls   = advCount   === 0 ? 'count-segment advance zero' : 'count-segment advance';
-      const fenceCls = fenceCount === 0 ? 'count-segment fence zero'   : 'count-segment fence';
-      const cutCls   = cutCount   === 0 ? 'count-segment cut zero'     : 'count-segment cut';
-      tallyHTML = `<div class="committee-count-strip">`
-                + `<span class="${advCls}">${advCount} advance</span>`
-                + `<span class="${fenceCls}">${fenceCount} on the fence</span>`
-                + `<span class="${cutCls}">${cutCount} would cut</span>`
-                + `</div>`;
-    }
     evalResults.forEach(({ ev, verdict }) => {
       const nameRole = ev.name ? `${ev.name}${ev.title ? ' · ' + ev.title : ''}` : ev.id;
       tallyHTML += `<div class="committee-eval-row">`
@@ -238,6 +256,17 @@ function render(d) {
     bpCard.style.display = '';
   } else {
     bpCard.style.display = 'none';
+  }
+
+  // Drafted Opener — ready-to-send artifact; never shown for Do Not Apply
+  const openerCard = document.getElementById('openerCard');
+  const opener = (d.draftedOpener || '').trim();
+  const isDoNotApply = (d.recommendation || '').toLowerCase().includes('do not');
+  if (opener && !isDoNotApply) {
+    document.getElementById('openerBody').textContent = opener;
+    openerCard.style.display = '';
+  } else {
+    openerCard.style.display = 'none';
   }
 
   // Company Topology

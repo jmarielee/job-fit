@@ -72,6 +72,34 @@ function _requiredCoreMissing(jdItems) {
     !it.obtainable
   ).length;
 }
+/* ── THE GATE ────────────────────────────────────────────────────────────
+   The single requirement most likely to end the application BEFORE a human
+   weighs the whole picture — a recruiter/ATS screen-out. This is a SECOND
+   deterministic signal alongside the score: the score measures overall match
+   strength; the gate measures the one blocking risk. Both come from the same
+   honest labels. A gate is REQUIRED only (a preferred gap is never a gate),
+   core/supporting, not obtainable, and not already met. partial counts —
+   "stated but not demonstrated" is exactly how candidates get screened out. */
+function _identifyGate(jdItems) {
+  const SEVERITY = { missing: 2, partial: 1 };
+  const candidates = (jdItems || []).filter(it =>
+    it.tier === 'required' &&
+    (it.centrality === 'core' || it.centrality === 'supporting') &&
+    (it.status === 'missing' || it.status === 'partial') &&
+    !it.obtainable
+  );
+  if (!candidates.length) return null;
+  // Rank: most severe status first, then most central, then by combined weight.
+  candidates.sort((a, b) => {
+    const sev = (SEVERITY[b.status] || 0) - (SEVERITY[a.status] || 0);
+    if (sev) return sev;
+    const cent = (CENT_W[b.centrality] || 0) - (CENT_W[a.centrality] || 0);
+    if (cent) return cent;
+    return _itemWeight(b) - _itemWeight(a);
+  });
+  const g = candidates[0];
+  return { text: g.text, status: g.status, centrality: g.centrality };
+}
 function _confidence(o) {
   if ((o.jdItemCount || 0) < 3) return 'low';
   if ((o.resumeLen || 0) < 200) return 'low';
@@ -142,6 +170,13 @@ function computeScore(model) {
     recommendation = 'Do Not Apply';
   }
 
+  // THE GATE — a single unmet required item is a screen-out risk no match
+  // strength can buy past. A strong overall match with a live gate is never a
+  // clean "Apply": it's "Apply with Caution" until the gate is neutralized.
+  // The gate never RESCUES a weak score (no upgrade to Do Not Apply).
+  const gate = _identifyGate(model.jdItems);
+  if (gate && recommendation === 'Apply') recommendation = 'Apply with Caution';
+
   // committeeNote: honest plain-English statement of the evaluator split when they diverge
   const total = vote.apply + vote.skip;
   let committeeNote = '';
@@ -161,7 +196,7 @@ function computeScore(model) {
     score, base: Math.round(base), bonus,
     gWeighted: +gaps.G.toFixed(2), sWeighted: +str.S.toFixed(2),
     edgeVsGap: evg, capped, capReason, lowConfidence,
-    vote, recommendation, verdict, divergent, reqMiss, committeeNote,
+    vote, recommendation, verdict, divergent, reqMiss, committeeNote, gate,
   };
 }
 /* ===== END SCORING BRAIN ===== */
@@ -174,7 +209,7 @@ MODE 1 — NEUTRAL CALIBRATED ANALYST (jdItems, strengths labels only):
 When assigning tier, centrality, status, and mapsToNeed, you are a neutral, calibrated analyst. Follow the evidence exactly. Labels must reflect reality neither cynically nor generously — the cynical persona has zero influence here. Label honestly even when it helps the candidate; label accurately even when it hurts. This is the instruction that drives the computed survivability score.
 
 MODE 2 — CYNICAL ADVERSARIAL VOICE (all narrative fields):
-For evaluators, objections, rejectionRisk, signalDeficits, shapeRisk, companyReality, strategicBrief, angle, hook, bestPathIn, and priorityActions — this is where the adversarial intelligence system operates. Analytical, precise, no corporate pleasantries, no cheerleading, no generic encouragement. Highlight hard realities. Avoid generic phrases: "strong communication skills", "cross-functional collaboration", "fast-paced environment", "passionate", "proven track record". Give deep empirical insights.
+For evaluators, objections, rejectionRisk, signalDeficits, shapeRisk, companyReality, strategicBrief, angle, hook, bestPathIn, draftedOpener, and priorityActions — this is where the adversarial intelligence system operates. Analytical, precise, no corporate pleasantries, no cheerleading, no generic encouragement. Highlight hard realities. Avoid generic phrases: "strong communication skills", "cross-functional collaboration", "fast-paced environment", "passionate", "proven track record". Give deep empirical insights.
 
 For Evaluators (Mode 2):
 - recruiter: wants safety, legibility, instant matching, checklist verification. Fears making a weird or confusing choice.
@@ -201,6 +236,8 @@ ROLE-LEVEL CALIBRATION: Detect when the JD frames itself as entry-level, trainee
 - signalDeficits: ONLY fixable missing signals, each with a concrete one-line fix. Not a restatement of risks.
 - evaluators[].objections: each evaluator raises their OWN distinct concern flowing from their distinct motivation. The three must NOT all name the same gap.
 - priorityActions: the single canonical to-do list. Do not duplicate, verbatim, a fix already stated in signalDeficits or shapeRisk — if it is the same action, it lives in priorityActions only.
+
+DRAFTED OPENER — draftedOpener field (Mode 2): A ready-to-send outreach opener of EXACTLY 3 sentences, addressed to the hiring manager or a referral, that the candidate could paste and send. Lead with the single strongest mapped outcome (a shipped result, a measured number) — not a greeting, not "I'm writing to express interest." Sentence 2 connects that outcome to this role's core need. Sentence 3 acknowledges and pre-empts the gate honestly without apologizing for it (e.g. naming the in-progress fix), turning the screen-out risk into a handled item. Plain text, first person, no salutation line, no signature, under 80 words total. If the verdict is "Do Not Apply", set draftedOpener to an empty string — do not draft outreach for an application that should not be sent.
 
 DECISIVENESS SCALING — match effort to the verdict:
 - When most required + core JD items are missing (a clear reject), be TERSE. Short objections, no elaborate counter-narratives for an unwinnable application. Give the verdict and the two highest-leverage facts, then stop. Do not pad a weak case with exhaustive analysis.
@@ -248,7 +285,7 @@ async function runBrief() {
   document.getElementById('stage-loading').classList.add('active');
   startStepper();
 
-  const userQuery = `JOB SPECIFICATIONS:\n${jd}\n\n---\n\nCANDIDATE RESUME:\n${resume}\n\n---\n\nRespond with a single JSON object only. No explanation, no markdown, no code fences. Use exactly this structure:\n{"survivabilityScore":integer,"jdItems":[{"text":"string","tier":"required|preferred","centrality":"core|supporting|peripheral","status":"meets|partial|missing","obtainable":boolean}],"strengths":[{"text":"string","centrality":"core|supporting|peripheral","mapsToNeed":true}],"verdict":"string","recommendation":"string","confidenceLevel":"string","evidenceStrength":"string","angle":"string","hook":"string","bestPathIn":{"path":"string","reason":"string","firstMove":"string"},"companyReality":{"read":"string","risk":"string","watchFor":["string"]},"strategicBrief":{"credibility":["string"],"risks":["string"]},"signalDeficits":[{"signal":"string","whyItMatters":"string","fix":"string"}],"rejectionRisk":{"stages":[{"stage":"string","riskLevel":"string","confidenceLevel":"string","evidenceStrength":"string","headline":"string","evidence":["string"]}]},"shapeRisk":{"level":"string","headline":"string","evidence":["string"],"fix":"string"},"evaluators":[{"id":"string","name":"string","title":"string","agenda":"string","score":integer,"confidenceLevel":"string","evidenceStrength":"string","gutTake":"string","objections":["string"],"evidence":["string"]}],"committeeRead":"string","benchmarkProfile":{"title":"string","summary":"string","likelySignals":["string"],"whereYouCompete":["string"],"whereYouLag":["string"],"marketReality":"string","fastestUpgrade":"string"},"priorityActions":["string"]}`;
+  const userQuery = `JOB SPECIFICATIONS:\n${jd}\n\n---\n\nCANDIDATE RESUME:\n${resume}\n\n---\n\nRespond with a single JSON object only. No explanation, no markdown, no code fences. Use exactly this structure:\n{"survivabilityScore":integer,"jdItems":[{"text":"string","tier":"required|preferred","centrality":"core|supporting|peripheral","status":"meets|partial|missing","obtainable":boolean}],"strengths":[{"text":"string","centrality":"core|supporting|peripheral","mapsToNeed":true}],"verdict":"string","recommendation":"string","confidenceLevel":"string","evidenceStrength":"string","angle":"string","hook":"string","bestPathIn":{"path":"string","reason":"string","firstMove":"string"},"companyReality":{"read":"string","risk":"string","watchFor":["string"]},"strategicBrief":{"credibility":["string"],"risks":["string"]},"signalDeficits":[{"signal":"string","whyItMatters":"string","fix":"string"}],"rejectionRisk":{"stages":[{"stage":"string","riskLevel":"string","confidenceLevel":"string","evidenceStrength":"string","headline":"string","evidence":["string"]}]},"shapeRisk":{"level":"string","headline":"string","evidence":["string"],"fix":"string"},"evaluators":[{"id":"string","name":"string","title":"string","agenda":"string","score":integer,"confidenceLevel":"string","evidenceStrength":"string","gutTake":"string","objections":["string"],"evidence":["string"]}],"committeeRead":"string","benchmarkProfile":{"title":"string","summary":"string","likelySignals":["string"],"whereYouCompete":["string"],"whereYouLag":["string"],"marketReality":"string","fastestUpgrade":"string"},"draftedOpener":"string","priorityActions":["string"]}`;
 
   const requestPayload = {
     model: "claude-sonnet-4-5",

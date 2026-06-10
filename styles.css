@@ -958,3 +958,87 @@
   .stage-result-nav { max-width: 960px; margin: 0 auto 24px; }
   .btn-reset { font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-primary); background: none; border: 1px solid var(--border-color); cursor: pointer; padding: 0.5rem 1rem; }
   .btn-reset:hover { background: var(--bg-surface); }
+
+  /* --- THE GATE (single loud screen-out flag, sits under the score) --- */
+  .gate-flag {
+    background: var(--risk-critical-bg);
+    border: 2px solid var(--risk-critical);
+    border-left: 8px solid var(--risk-critical);
+    padding: 1.25rem 1.5rem;
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .gate-flag-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--risk-critical);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .gate-flag-icon { font-size: 0.95rem; line-height: 1; }
+  .gate-flag-text {
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    line-height: 1.2;
+  }
+  .gate-flag-note {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+  }
+
+  /* --- DRAFTED OPENER (ready-to-send artifact) --- */
+  .opener-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-top: 4px solid var(--risk-low);
+    padding: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  .opener-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.85rem;
+  }
+  .opener-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--risk-low);
+    font-weight: 700;
+  }
+  .btn-opener-copy {
+    background: var(--text-primary);
+    color: var(--bg-main);
+    border: 1px solid var(--border-color);
+    padding: 0.35rem 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn-opener-copy:hover { background: #334155; }
+  .opener-body {
+    font-family: var(--font-tech);
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    line-height: 1.65;
+    white-space: pre-wrap;
+    background: var(--bg-main);
+    border: 1px solid var(--border-subtle);
+    padding: 1rem 1.25rem;
+  }

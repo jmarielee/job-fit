@@ -112,12 +112,26 @@
           </div>
         </div>
 
+        <div class="gate-flag" id="gateFlag" style="display:none">
+          <div class="gate-flag-label"><span class="gate-flag-icon">⚠</span> The Gate — clear this or you don't get read</div>
+          <div class="gate-flag-text" id="gateFlagText"></div>
+          <div class="gate-flag-note" id="gateFlagNote"></div>
+        </div>
+
         <div class="bestpath-card" id="bestPathCard" style="display:none">
           <div class="bestpath-label">Your Best Way In</div>
           <div class="bestpath-path" id="bestPathPath"></div>
           <div class="bestpath-reason" id="bestPathReason"></div>
           <div class="bestpath-move-label">Do This First</div>
           <div class="bestpath-move" id="bestPathFirstMove"></div>
+        </div>
+
+        <div class="opener-card" id="openerCard" style="display:none">
+          <div class="opener-head">
+            <div class="opener-label">Your Drafted Opener — paste, tweak, send</div>
+            <button class="btn-opener-copy" id="openerCopyBtn" onclick="copyOpener()">Copy</button>
+          </div>
+          <div class="opener-body" id="openerBody"></div>
         </div>
       </div>
 
