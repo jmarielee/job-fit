@@ -35,6 +35,7 @@ const STATUS_F = { missing: 1.0, partial: 0.5, meets: 0.0 };
 const EDGE_BONUS    = { core: 12, supporting: 6, peripheral: 0, none: 0 };
 const REALISM_CEIL  = 90;   // the room is never a sure thing
 const CAP_VALUE     = 45;   // required-gate cap
+const GATE_CORE_CEIL = 74;  // a live CORE required gate can't read as "Strong Candidate" — capped into "Viable but Exposed"
 const TIE_FACTOR    = 1.3;  // edge-vs-gap dominance threshold
 
 function _itemWeight(it) {
@@ -148,6 +149,21 @@ function computeScore(model) {
   let lowConfidence = false;
   if (conf === 'low') { lowConfidence = true; score = Math.max(40, Math.min(65, score)); }
 
+  // THE GATE — the single unmet required item most likely to screen you out
+  // before a human weighs the whole picture. Identified BEFORE the verdict so a
+  // CORE gate can constrain the score, exactly like the required-gate cap and
+  // realism ceiling do. Math-owned, derived from the same honest labels.
+  // Rule: a live CORE required gate can't read as a "Strong Candidate" match —
+  // capped into "Viable but Exposed" until the gate is neutralized. A supporting
+  // gate doesn't cap the number (less likely to be a hard screen-out) but still
+  // forces caution below. A gate NEVER rescues a weak score.
+  const gate = _identifyGate(model.jdItems);
+  let gateCapped = false;
+  if (gate && gate.centrality === 'core' && score > GATE_CORE_CEIL) {
+    score = GATE_CORE_CEIL;
+    gateCapped = true;
+  }
+
   score = Math.round(score);
 
   const evg  = _edgeVsGap(str.S, gaps.G);
@@ -170,11 +186,7 @@ function computeScore(model) {
     recommendation = 'Do Not Apply';
   }
 
-  // THE GATE — a single unmet required item is a screen-out risk no match
-  // strength can buy past. A strong overall match with a live gate is never a
-  // clean "Apply": it's "Apply with Caution" until the gate is neutralized.
-  // The gate never RESCUES a weak score (no upgrade to Do Not Apply).
-  const gate = _identifyGate(model.jdItems);
+  // A live gate (core or supporting) is never a clean "Apply".
   if (gate && recommendation === 'Apply') recommendation = 'Apply with Caution';
 
   // committeeNote: honest plain-English statement of the evaluator split when they diverge
@@ -196,7 +208,7 @@ function computeScore(model) {
     score, base: Math.round(base), bonus,
     gWeighted: +gaps.G.toFixed(2), sWeighted: +str.S.toFixed(2),
     edgeVsGap: evg, capped, capReason, lowConfidence,
-    vote, recommendation, verdict, divergent, reqMiss, committeeNote, gate,
+    vote, recommendation, verdict, divergent, reqMiss, committeeNote, gate, gateCapped,
   };
 }
 /* ===== END SCORING BRAIN ===== */
