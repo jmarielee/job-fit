@@ -74,10 +74,22 @@
     margin-bottom: 1.25rem;
   }
   .header h1 em {
-    font-family: 'Instrument Serif', serif;
-    font-style: italic;
-    color: #c8410a;
-    font-weight: 400;
+    font-family: inherit;
+    font-style: normal;
+    font-weight: inherit;
+    color: var(--text-primary);
+    position: relative;
+    display: inline-block;
+    padding: 0 0.06em;
+  }
+  .header h1 em .scrawl-circle {
+    position: absolute;
+    top: -16%;
+    left: -9%;
+    width: 118%;
+    height: 132%;
+    pointer-events: none;
+    overflow: visible;
   }
   .header-sub {
     font-size: 1.1rem;
@@ -862,6 +874,68 @@
   }
   .bench-title { font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700; color: var(--text-primary); text-transform: uppercase; }
   .bench-summary { font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; }
+
+  /* --- THE BAR GAUGE: you vs. the hired-candidate threshold --- */
+  .bench-gauge {
+    border-top: 1px solid var(--border-color);
+    padding-top: 1.5rem;
+  }
+  .bench-gauge-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.6rem;
+  }
+  .bench-gauge-you { color: var(--text-primary); }
+  .bench-gauge-gap { color: var(--risk-high); }
+  .bench-gauge-gap.above { color: var(--risk-low); }
+  .bench-gauge-track {
+    position: relative;
+    height: 22px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    margin-bottom: 1.9rem;
+  }
+  .bench-gauge-fill {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 0%;
+    background: var(--risk-medium);
+    transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .bench-gauge-marker {
+    position: absolute;
+    top: -5px; bottom: -5px;
+    left: 75%;
+    width: 0;
+    border-left: 3px solid var(--border-color);
+  }
+  .bench-gauge-marker-tag {
+    position: absolute;
+    top: calc(100% + 0.35rem);
+    left: 0;
+    transform: translateX(-50%);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+  .bench-gauge-note {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-top: -1.1rem;
+    margin-bottom: 0.4rem;
+  }
   .bench-compare {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -959,7 +1033,7 @@
   .btn-reset { font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-primary); background: none; border: 1px solid var(--border-color); cursor: pointer; padding: 0.5rem 1rem; }
   .btn-reset:hover { background: var(--bg-surface); }
 
-  /* --- THE GATE (single loud screen-out flag, sits under the score) --- */
+  /* --- THE GATE (restored: box styles were dropped in redesign) --- */
   .gate-flag {
     background: var(--risk-critical-bg);
     border: 2px solid var(--risk-critical);

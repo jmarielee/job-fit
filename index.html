@@ -13,7 +13,7 @@
 <div class="container">
   <div class="header">
     <p class="header-eyebrow">Job Fit Report // Honest Assessment</p>
-    <h1>Will you <em>actually</em><br>get this job?</h1>
+    <h1>Will you <em class="scrawl">actually<svg class="scrawl-circle" viewBox="0 0 220 80" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M191.9,17.5 C193.9,18.4 200.8,20.8 203.7,23.1 C206.5,25.3 209.5,28.2 209.1,31.1 C208.7,34.0 204.4,37.5 201.1,40.7 C197.8,43.8 194.1,46.9 189.4,49.8 C184.7,52.7 178.9,55.4 173.0,58.1 C167.0,60.8 160.7,63.4 153.7,65.9 C146.8,68.3 139.3,71.6 131.2,73.0 C123.1,74.4 113.6,74.3 105.0,74.3 C96.4,74.3 87.5,74.1 79.5,73.2 C71.5,72.3 64.3,70.4 56.9,69.0 C49.6,67.7 42.2,66.7 35.5,65.2 C28.7,63.8 21.4,62.3 16.3,60.3 C11.3,58.2 6.4,55.5 4.9,52.9 C3.5,50.2 5.9,47.1 7.9,44.5 C9.9,41.9 13.1,39.6 16.7,37.2 C20.4,34.8 24.5,32.5 29.9,30.0 C35.3,27.5 41.3,24.4 48.9,22.2 C56.5,19.9 66.1,17.9 75.5,16.4 C84.9,15.0 95.4,14.3 105.2,13.7 C114.9,13.0 125.1,12.2 133.9,12.4 C142.7,12.5 150.1,14.4 158.1,14.8 C166.0,15.1 175.0,13.8 181.6,14.5 C188.1,15.1 193.6,16.8 197.5,18.6 C201.4,20.4 204.1,22.8 205.0,25.2 C205.9,27.7 204.5,30.6 202.9,33.3 C201.2,36.0 198.0,38.6 195.0,41.4 C192.0,44.2 189.4,47.3 185.0,50.1 C180.6,52.8 174.5,55.4 168.5,58.1 C162.4,60.7 156.2,64.0 148.9,65.9 C141.5,67.8 132.7,69.1 124.5,69.6 C116.4,70.2 108.0,69.5 100.0,69.4 C92.1,69.3 84.2,69.3 76.7,68.8 C69.1,68.3 61.8,67.4 54.8,66.4 C47.8,65.5 40.4,64.5 34.8,62.9 C29.2,61.3 24.5,58.9 21.4,56.8 C18.2,54.6 16.8,50.9 15.9,49.7" fill="none" stroke="#c8410a" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg></em><br>get this job?</h1>
     <p class="header-sub">Paste the job description and your resume. Get an honest, unfiltered breakdown of your real chances — where you're strong, where you'll get cut, and exactly what to fix before you apply.</p>
   </div>
 
@@ -158,6 +158,19 @@
           <div>
             <div class="bench-title" id="benchTitle"></div>
             <div class="bench-summary" id="benchSummary" style="margin-top:0.5rem"></div>
+          </div>
+          <div class="bench-gauge" id="benchGauge">
+            <div class="bench-gauge-head">
+              <span class="bench-gauge-you" id="benchGaugeYou">YOU — </span>
+              <span class="bench-gauge-gap" id="benchGaugeGap"></span>
+            </div>
+            <div class="bench-gauge-track">
+              <div class="bench-gauge-fill" id="benchGaugeFill"></div>
+              <div class="bench-gauge-marker" id="benchGaugeMarker">
+                <span class="bench-gauge-marker-tag" id="benchGaugeMarkerTag">THE BAR · 75</span>
+              </div>
+            </div>
+            <div class="bench-gauge-note" id="benchGaugeNote" style="display:none"></div>
           </div>
           <div class="bench-compare">
             <div class="bench-col compete">

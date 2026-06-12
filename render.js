@@ -45,20 +45,8 @@ function initials(name) {
   if (!name) return '?';
   return name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
 }
-function copyOpener() {
-  const body = document.getElementById('openerBody');
-  const btn  = document.getElementById('openerCopyBtn');
-  if (!body) return;
-  const text = body.textContent || '';
-  const done = () => { if (btn) { const o = btn.textContent; btn.textContent = 'Copied'; setTimeout(() => btn.textContent = o, 1500); } };
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(done).catch(() => {});
-  } else {
-    const ta = document.createElement('textarea');
-    ta.value = text; document.body.appendChild(ta); ta.select();
-    try { document.execCommand('copy'); done(); } catch (e) {}
-    document.body.removeChild(ta);
-  }
+function showIf(el, on) {
+  if (el) el.style.display = on ? '' : 'none';
 }
 function metaChipsHTML(confidence, evidence) {
   const chips = [];
@@ -179,6 +167,64 @@ function initCollapsibles() {
   });
 }
 
+/* ── SCORE RECEIPT ────────────────────────────────────────────────────────
+   The shown work: every number here comes from d._brain, computed in
+   scoring.js. Pure display — proof the score is computed, not generated.
+   Collapsed by default (native <details>) so it adds depth, not noise. */
+function buildScoreReceipt(d) {
+  const anchor = document.getElementById('gateFlag');
+  if (!anchor || !anchor.parentNode) return;
+  let box = document.getElementById('scoreReceipt');
+  const b = d._brain;
+  if (!b) { if (box) box.style.display = 'none'; return; }
+  if (!box) {
+    box = document.createElement('details');
+    box.id = 'scoreReceipt';
+    box.style.cssText = 'margin-top:1.5rem;border:1px dashed var(--border-color);background:var(--bg-surface);';
+    anchor.parentNode.insertBefore(box, anchor.nextSibling);
+  }
+  box.style.display = '';
+  box.open = false;
+
+  const mono = 'font-family:var(--font-mono);';
+  const row = (k, v) =>
+    `<div style="display:flex;justify-content:space-between;gap:1rem;padding:0.3rem 0;border-top:1px solid var(--border-subtle);${mono}font-size:0.72rem;">`
+    + `<span style="color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;">${k}</span>`
+    + `<span style="color:var(--text-primary);text-align:right;">${v}</span></div>`;
+
+  const G = b.gWeighted, S = b.sWeighted;
+  const domWord = b.edgeVsGap === 'edge' ? 'strengths dominate'
+                : b.edgeVsGap === 'gap'  ? 'gaps dominate' : 'balanced';
+  const domTest = `S ${S} vs 1.3×G ${(1.3 * G).toFixed(2)} → ${domWord}`;
+
+  const guards = [
+    `realism ceiling 90 — always on`,
+    `required-gate cap 45 — ${b.capped ? 'FIRED: ' + b.capReason : 'not fired'}`,
+    `core-gate ceiling 74 — ${b.gateCapped ? 'FIRED: live core required gate' : 'not fired'}`,
+    `confidence floor — ${b.lowConfidence ? 'FIRED: clamped 40–65, flagged low confidence' : 'not fired'}`,
+  ].map(g => `<div style="${mono}font-size:0.7rem;color:var(--text-secondary);padding:0.15rem 0;line-height:1.45;">· ${g}</div>`).join('');
+
+  const routing = `score ${b.score} + ${b.vote.apply}/3 apply leans + `
+    + `${b.edgeVsGap === 'edge' ? 'edge dominance' : 'no edge dominance'}`
+    + `${b.gate ? ' + live gate' : ''} → ${b.recommendation}`;
+
+  box.innerHTML =
+    `<summary style="cursor:pointer;padding:0.8rem 1.25rem;${mono}font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-primary);">⬡ Score Receipt — how this number was computed</summary>`
+    + `<div style="padding:0 1.25rem 1rem;">`
+    + row('Gap mass (G)', G)
+    + row('Strength mass (S)', S)
+    + row('Base = 100 × (1 − G/Σw)', b.base)
+    + row('Edge bonus', '+' + b.bonus + ' max, scaled by headroom')
+    + row('Edge dominance test', domTest)
+    + `<div style="${mono}font-size:0.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em;padding:0.5rem 0 0.15rem;border-top:1px solid var(--border-subtle);margin-top:0.3rem;">Guardrails</div>`
+    + guards
+    + row('Committee', b.committeeNote || '—')
+    + row('Routing', routing)
+    + row('Final score', b.score + ' / 100')
+    + `<div style="${mono}font-size:0.65rem;color:var(--text-muted);padding-top:0.6rem;line-height:1.5;">The model only labeled the evidence. Every value above was computed deterministically in scoring.js — same labels, same number, every run.</div>`
+    + `</div>`;
+}
+
 /* ── MAIN REPORT RENDER ──────────────────────────────────────────────────── */
 
 function render(d) {
@@ -200,6 +246,12 @@ function render(d) {
   document.getElementById('scoreAngle').textContent = d.angle || '';
   document.getElementById('scoreHook').textContent = d.hook || '';
 
+  // Terse rejects can return empty narrative fields — hide orphan labels
+  const angleOn = !!(d.angle || '').trim();
+  showIf(document.querySelector('.score-angle-label'), angleOn);
+  showIf(document.getElementById('scoreAngle'), angleOn);
+  showIf(document.querySelector('.score-meta-grid'), !!(d.hook || '').trim());
+
   const badge = document.getElementById('scoreRecBadge');
   badge.className = 'score-rec-badge ' + rc;
   document.getElementById('scoreRecText').textContent = d.recommendation || '—';
@@ -209,7 +261,8 @@ function render(d) {
      d.evidenceStrength ? `<span class="meta-chip">EVIDENCE STRENGTH: ${d.evidenceStrength}</span>` : '']
     .filter(Boolean).join('');
 
-  // THE GATE — loud, single screen-out risk (deterministic, from the scoring brain)
+  // THE GATE — the single unmet required item most likely to screen the candidate out.
+  // Restored: this block was dropped in the redesign. Reads d._brain.gate from computeScore.
   const gateFlag = document.getElementById('gateFlag');
   const gate = d._brain && d._brain.gate;
   if (gate) {
@@ -222,16 +275,17 @@ function render(d) {
     gateFlag.style.display = 'none';
   }
 
+  // Score Receipt — the shown work, collapsed under the hero
+  buildScoreReceipt(d);
+
   // Committee Read
   const commSection = document.getElementById('section-committee-read');
   if (d.committeeRead) {
     document.getElementById('committeeReadText').textContent = d.committeeRead;
-    // Lock the tally to the same recruiter→hiring→internal order the cards use,
-    // so the room reads top-down in one consistent order regardless of model output order.
-    const EVAL_ORDER = ['recruiter','hiring','internal'];
-    const _ord = id => { const i = EVAL_ORDER.indexOf(id); return i === -1 ? 99 : i; };
-    const evals = (d.evaluators || []).slice().sort((a,b) => _ord(a.id) - _ord(b.id));
+    const evals = d.evaluators || [];
     const evalResults = evals.map(ev => ({ ev, verdict: evalVerdict(ev.score) }));
+    // Count strip removed; per-evaluator rows kept — the read names WHO is in the
+    // room and where each one lands.
     let tallyHTML = '';
     evalResults.forEach(({ ev, verdict }) => {
       const nameRole = ev.name ? `${ev.name}${ev.title ? ' · ' + ev.title : ''}` : ev.id;
@@ -253,12 +307,16 @@ function render(d) {
     document.getElementById('bestPathPath').textContent = bpi.path;
     document.getElementById('bestPathReason').textContent = bpi.reason || '';
     document.getElementById('bestPathFirstMove').textContent = bpi.firstMove || '';
+    const moveOn = !!(bpi.firstMove || '').trim();
+    showIf(document.querySelector('.bestpath-move-label'), moveOn);
+    showIf(document.getElementById('bestPathFirstMove'), moveOn);
     bpCard.style.display = '';
   } else {
     bpCard.style.display = 'none';
   }
 
   // Drafted Opener — ready-to-send artifact; never shown for Do Not Apply
+  // (restored: this block was dropped in the redesign)
   const openerCard = document.getElementById('openerCard');
   const opener = (d.draftedOpener || '').trim();
   const isDoNotApply = (d.recommendation || '').toLowerCase().includes('do not');
@@ -277,6 +335,8 @@ function render(d) {
     document.getElementById('companyRisk').textContent = cr.risk || '';
     document.getElementById('companyWatchFor').innerHTML =
       (cr.watchFor||[]).map(w=>`<div class="company-watchfor-item">${w}</div>`).join('');
+    showIf(document.getElementById('companyRisk').parentElement, !!(cr.risk || '').trim());
+    showIf(document.getElementById('companyWatchFor').parentElement, (cr.watchFor||[]).length > 0);
     crSection.style.display = '';
   } else {
     crSection.style.display = 'none';
@@ -284,10 +344,15 @@ function render(d) {
 
   // Strategic Brief columns
   const sb = d.strategicBrief || {};
+  const credList = (sb.credibility||[]).slice(0,3);
+  const riskList = (sb.risks||[]).slice(0,3);
   document.getElementById('credBullets').innerHTML =
-    (sb.credibility||[]).slice(0,3).map(c=>`<div class="brief-bullet">${c}</div>`).join('');
+    credList.map(c=>`<div class="brief-bullet">${c}</div>`).join('');
   document.getElementById('riskBullets').innerHTML =
-    (sb.risks||[]).slice(0,3).map(r=>`<div class="brief-bullet">${r}</div>`).join('');
+    riskList.map(r=>`<div class="brief-bullet">${r}</div>`).join('');
+  showIf(document.querySelector('.brief-col.cred'), credList.length > 0);
+  showIf(document.querySelector('.brief-col.risk'), riskList.length > 0);
+  showIf(document.getElementById('section01'), credList.length > 0 || riskList.length > 0);
 
   // Critical Signal Deficits
   const sdEl = document.getElementById('signalDeficits');
@@ -349,6 +414,9 @@ function render(d) {
     document.getElementById('shapeRiskEvidence').innerHTML =
       (sr2.evidence||[]).map(e=>`<div class="shaperisk-evidence-item">${e}</div>`).join('');
     document.getElementById('shapeRiskFix').textContent = sr2.fix || '';
+    const fixOn = !!(sr2.fix || '').trim();
+    showIf(document.querySelector('.shaperisk-fix-label'), fixOn);
+    showIf(document.getElementById('shapeRiskFix'), fixOn);
     srSection.style.display = '';
   } else {
     srSection.style.display = 'none';
@@ -360,6 +428,33 @@ function render(d) {
   if (bp.summary || bp.title) {
     document.getElementById('benchTitle').textContent = bp.title || '';
     document.getElementById('benchSummary').textContent = bp.summary || '';
+
+    // ── THE BAR gauge ──
+    // The bar sits at 75: the system's own 'hi' threshold in scoreClass().
+    // Same deterministic score in demo and real runs — both route through computeScore.
+    const THE_BAR = 75;
+    const gScore = Math.max(0, Math.min(100, d.survivabilityScore ?? 0));
+    const gaugeColors = { hi: '#16a34a', mid: '#ca8a04', lo: '#ea580c', crit: '#e11d48' };
+    document.getElementById('benchGaugeYou').textContent = `YOU — ${gScore}`;
+    const fill = document.getElementById('benchGaugeFill');
+    fill.style.width = gScore + '%';
+    fill.style.background = gaugeColors[scoreClass(gScore)] || gaugeColors.crit;
+    document.getElementById('benchGaugeMarker').style.left = THE_BAR + '%';
+    document.getElementById('benchGaugeMarkerTag').textContent = `THE BAR · ${THE_BAR}`;
+    const gapEl = document.getElementById('benchGaugeGap');
+    const gap = gScore - THE_BAR;
+    gapEl.textContent = gap >= 0
+      ? `${gap} PTS ABOVE THE BAR`
+      : `${Math.abs(gap)} PTS BELOW THE BAR`;
+    gapEl.classList.toggle('above', gap >= 0);
+    const noteEl = document.getElementById('benchGaugeNote');
+    if (d._brain && d._brain.capped) {
+      noteEl.textContent = `⬡ Survivability cap engaged — ${d._brain.capReason || 'required-skill gap limits the ceiling'}`;
+      noteEl.style.display = '';
+    } else {
+      noteEl.style.display = 'none';
+    }
+
     document.getElementById('benchCompete').innerHTML =
       (bp.whereYouCompete||[]).slice(0,3).map(s=>`<div class="bench-item">${s}</div>`).join('');
     document.getElementById('benchLag').innerHTML =
@@ -368,6 +463,11 @@ function render(d) {
       (bp.likelySignals||[]).slice(0,3).map(s=>`<div class="bench-signal-item">${s}</div>`).join('');
     document.getElementById('benchReality').textContent = bp.marketReality || '';
     document.getElementById('benchUpgrade').textContent = bp.fastestUpgrade || '';
+    showIf(document.querySelector('.bench-col.compete'), (bp.whereYouCompete||[]).length > 0);
+    showIf(document.querySelector('.bench-col.lag'), (bp.whereYouLag||[]).length > 0);
+    showIf(document.getElementById('benchSignals').parentElement, (bp.likelySignals||[]).length > 0);
+    showIf(document.getElementById('benchReality').parentElement, !!(bp.marketReality || '').trim());
+    showIf(document.querySelector('.bench-upgrade'), !!(bp.fastestUpgrade || '').trim());
     bpSection.style.display = '';
   } else {
     bpSection.style.display = 'none';
@@ -403,10 +503,10 @@ function render(d) {
       <div class="eval-card-body">
         ${metaChipsHTML(ev.confidenceLevel, ev.evidenceStrength)}
         <div class="eval-take">${ev.gutTake || ''}</div>
-        <div class="eval-objections-label">Questions They'll Probably Ask You</div>
+        ${(ev.objections||[]).length ? `<div class="eval-objections-label">Questions They'll Probably Ask You</div>
         <div class="eval-objections">
           ${(ev.objections||[]).slice(0,2).map(o=>`<div class="eval-objection">${o}</div>`).join('')}
-        </div>
+        </div>` : ''}
         ${evidenceHTML(ev.evidence)}
       </div>`;
     evalEl.appendChild(card);
@@ -422,4 +522,21 @@ function render(d) {
 
   // Collapse the deep sections by default — skim-first
   initCollapsibles();
+}
+
+/* ── DRAFTED OPENER COPY (restored) ─────────────────────────────────────── */
+function copyOpener() {
+  const body = document.getElementById('openerBody');
+  const btn  = document.getElementById('openerCopyBtn');
+  if (!body) return;
+  const text = body.textContent || '';
+  const done = () => { if (btn) { const o = btn.textContent; btn.textContent = 'Copied'; setTimeout(() => btn.textContent = o, 1500); } };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => {});
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
 }
