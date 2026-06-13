@@ -14,6 +14,14 @@ const COLLAPSIBLE_IDS = ['section-benchmark','section-company','section01','sect
 
 /* ── SMALL RENDER HELPERS ────────────────────────────────────────────────── */
 
+function esc(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
 function normRisk(raw) {
   const r = (raw || 'medium').toLowerCase();
   if (r.includes('critical')) return 'critical';
@@ -50,15 +58,15 @@ function showIf(el, on) {
 }
 function metaChipsHTML(confidence, evidence) {
   const chips = [];
-  if (confidence) chips.push(`<span class="meta-chip">conf: ${confidence}</span>`);
-  if (evidence) chips.push(`<span class="meta-chip">evid: ${evidence}</span>`);
+  if (confidence) chips.push(`<span class="meta-chip">conf: ${esc(confidence)}</span>`);
+  if (evidence) chips.push(`<span class="meta-chip">evid: ${esc(evidence)}</span>`);
   return chips.length ? `<div class="meta-chips">${chips.join('')}</div>` : '';
 }
 function evidenceHTML(items) {
   if (!items || !items.length) return '';
   return `<div class="evidence-block">
     <div class="evidence-label">Why We Think This</div>
-    ${items.slice(0,2).map(e=>`<div class="evidence-item">${e}</div>`).join('')}
+    ${items.slice(0,2).map(e=>`<div class="evidence-item">${esc(e)}</div>`).join('')}
   </div>`;
 }
 
@@ -257,8 +265,8 @@ function render(d) {
   document.getElementById('scoreRecText').textContent = d.recommendation || '—';
 
   document.getElementById('scoreMetaChips').innerHTML =
-    [d.confidenceLevel ? `<span class="meta-chip">CONFIDENCE: ${d.confidenceLevel}</span>` : '',
-     d.evidenceStrength ? `<span class="meta-chip">EVIDENCE STRENGTH: ${d.evidenceStrength}</span>` : '']
+    [d.confidenceLevel ? `<span class="meta-chip">CONFIDENCE: ${esc(d.confidenceLevel)}</span>` : '',
+     d.evidenceStrength ? `<span class="meta-chip">EVIDENCE STRENGTH: ${esc(d.evidenceStrength)}</span>` : '']
     .filter(Boolean).join('');
 
   // THE GATE — the single unmet required item most likely to screen the candidate out.
@@ -290,8 +298,8 @@ function render(d) {
     evalResults.forEach(({ ev, verdict }) => {
       const nameRole = ev.name ? `${ev.name}${ev.title ? ' · ' + ev.title : ''}` : ev.id;
       tallyHTML += `<div class="committee-eval-row">`
-                 + `<span class="committee-eval-name">${nameRole}</span>`
-                 + `<span class="eval-verdict-badge ${verdict.cls}">${verdict.label}</span>`
+                 + `<span class="committee-eval-name">${esc(nameRole)}</span>`
+                 + `<span class="eval-verdict-badge ${verdict.cls}">${esc(verdict.label)}</span>`
                  + `</div>`;
     });
     document.getElementById('committeeTally').innerHTML = tallyHTML;
@@ -334,7 +342,7 @@ function render(d) {
     document.getElementById('companyRead').textContent = cr.read;
     document.getElementById('companyRisk').textContent = cr.risk || '';
     document.getElementById('companyWatchFor').innerHTML =
-      (cr.watchFor||[]).map(w=>`<div class="company-watchfor-item">${w}</div>`).join('');
+      (cr.watchFor||[]).map(w=>`<div class="company-watchfor-item">${esc(w)}</div>`).join('');
     showIf(document.getElementById('companyRisk').parentElement, !!(cr.risk || '').trim());
     showIf(document.getElementById('companyWatchFor').parentElement, (cr.watchFor||[]).length > 0);
     crSection.style.display = '';
@@ -347,9 +355,9 @@ function render(d) {
   const credList = (sb.credibility||[]).slice(0,3);
   const riskList = (sb.risks||[]).slice(0,3);
   document.getElementById('credBullets').innerHTML =
-    credList.map(c=>`<div class="brief-bullet">${c}</div>`).join('');
+    credList.map(c=>`<div class="brief-bullet">${esc(c)}</div>`).join('');
   document.getElementById('riskBullets').innerHTML =
-    riskList.map(r=>`<div class="brief-bullet">${r}</div>`).join('');
+    riskList.map(r=>`<div class="brief-bullet">${esc(r)}</div>`).join('');
   showIf(document.querySelector('.brief-col.cred'), credList.length > 0);
   showIf(document.querySelector('.brief-col.risk'), riskList.length > 0);
   showIf(document.getElementById('section01'), credList.length > 0 || riskList.length > 0);
@@ -361,14 +369,14 @@ function render(d) {
   if (deficits.length) {
     sdEl.innerHTML = deficits.map(s=>`
       <div class="signal-deficit">
-        <div class="signal-name">${s.signal||''}</div>
+        <div class="signal-name">${esc(s.signal)}</div>
         <div>
           <div class="signal-meta-label">Why This Matters</div>
-          <div class="signal-meta">${s.whyItMatters||''}</div>
+          <div class="signal-meta">${esc(s.whyItMatters)}</div>
         </div>
         <div>
           <div class="signal-meta-label">How To Fix It</div>
-          <div class="signal-fix">${s.fix||''}</div>
+          <div class="signal-fix">${esc(s.fix)}</div>
         </div>
       </div>`).join('');
     sdSection.style.display = '';
@@ -387,15 +395,15 @@ function render(d) {
     card.className = 'risk-stage-card';
     card.innerHTML = `
       <div class="risk-stage-head">
-        <div class="risk-headline">${s.headline || s.stage}</div>
+        <div class="risk-headline">${esc(s.headline || s.stage)}</div>
         <div class="risk-meta-row">
-          <div class="risk-stage-name">${s.stage}</div>
+          <div class="risk-stage-name">${esc(s.stage)}</div>
           <div class="risk-bar-wrap">
             <div class="risk-bar-track">
               <div class="risk-bar-fill ${lv}" style="width:${pct}%"></div>
             </div>
           </div>
-          <div class="risk-pill ${lv}">${rawLevel}</div>
+          <div class="risk-pill ${lv}">${esc(rawLevel)}</div>
         </div>
         ${metaChipsHTML(s.confidenceLevel, s.evidenceStrength)}
       </div>
@@ -412,7 +420,7 @@ function render(d) {
     lvEl.className = 'risk-pill ' + sr2.level;
     document.getElementById('shapeRiskHeadline').textContent = sr2.headline || '';
     document.getElementById('shapeRiskEvidence').innerHTML =
-      (sr2.evidence||[]).map(e=>`<div class="shaperisk-evidence-item">${e}</div>`).join('');
+      (sr2.evidence||[]).map(e=>`<div class="shaperisk-evidence-item">${esc(e)}</div>`).join('');
     document.getElementById('shapeRiskFix').textContent = sr2.fix || '';
     const fixOn = !!(sr2.fix || '').trim();
     showIf(document.querySelector('.shaperisk-fix-label'), fixOn);
@@ -456,11 +464,11 @@ function render(d) {
     }
 
     document.getElementById('benchCompete').innerHTML =
-      (bp.whereYouCompete||[]).slice(0,3).map(s=>`<div class="bench-item">${s}</div>`).join('');
+      (bp.whereYouCompete||[]).slice(0,3).map(s=>`<div class="bench-item">${esc(s)}</div>`).join('');
     document.getElementById('benchLag').innerHTML =
-      (bp.whereYouLag||[]).slice(0,3).map(s=>`<div class="bench-item">${s}</div>`).join('');
+      (bp.whereYouLag||[]).slice(0,3).map(s=>`<div class="bench-item">${esc(s)}</div>`).join('');
     document.getElementById('benchSignals').innerHTML =
-      (bp.likelySignals||[]).slice(0,3).map(s=>`<div class="bench-signal-item">${s}</div>`).join('');
+      (bp.likelySignals||[]).slice(0,3).map(s=>`<div class="bench-signal-item">${esc(s)}</div>`).join('');
     document.getElementById('benchReality').textContent = bp.marketReality || '';
     document.getElementById('benchUpgrade').textContent = bp.fastestUpgrade || '';
     showIf(document.querySelector('.bench-col.compete'), (bp.whereYouCompete||[]).length > 0);
@@ -487,25 +495,25 @@ function render(d) {
 
     card.innerHTML = `
       <div class="eval-card-head">
-        <div class="eval-avatar">${initials(ev.name)}</div>
+        <div class="eval-avatar">${esc(initials(ev.name))}</div>
         <div class="eval-identity">
-          <div class="eval-name">${ev.name || '—'}</div>
-          <div class="eval-title">${ev.title || '—'}</div>
+          <div class="eval-name">${esc(ev.name || '—')}</div>
+          <div class="eval-title">${esc(ev.title || '—')}</div>
           <div class="eval-agenda">
             <div class="eval-agenda-label">What They Care About</div>
-            ${ev.agenda || ''}
+            ${esc(ev.agenda || '')}
           </div>
         </div>
         <div class="eval-verdict-wrap">
-          <span class="eval-verdict-badge ${verdict.cls}">${verdict.label}</span>
+          <span class="eval-verdict-badge ${verdict.cls}">${esc(verdict.label)}</span>
         </div>
       </div>
       <div class="eval-card-body">
         ${metaChipsHTML(ev.confidenceLevel, ev.evidenceStrength)}
-        <div class="eval-take">${ev.gutTake || ''}</div>
+        <div class="eval-take">${esc(ev.gutTake || '')}</div>
         ${(ev.objections||[]).length ? `<div class="eval-objections-label">Questions They'll Probably Ask You</div>
         <div class="eval-objections">
-          ${(ev.objections||[]).slice(0,2).map(o=>`<div class="eval-objection">${o}</div>`).join('')}
+          ${(ev.objections||[]).slice(0,2).map(o=>`<div class="eval-objection">${esc(o)}</div>`).join('')}
         </div>` : ''}
         ${evidenceHTML(ev.evidence)}
       </div>`;
@@ -517,7 +525,7 @@ function render(d) {
     (d.priorityActions||[]).slice(0,3).map((a,i)=>`
       <div class="priority-action">
         <span class="priority-num">ACTION-0${i+1}</span>
-        <span class="priority-text">${a}</span>
+        <span class="priority-text">${esc(a)}</span>
       </div>`).join('');
 
   // Collapse the deep sections by default — skim-first

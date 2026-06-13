@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.anthropic.com; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>Adversarial Brief — Will You Actually Get This Job?</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=Roboto+Mono:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -31,10 +32,10 @@
       <p class="access-gate-desc">Your key stays in your browser only. Get one free from <a href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer">Anthropic Console</a>.</p>
       <div class="access-input-wrap">
         <input type="password" class="access-input" id="apiKeyInput" placeholder="sk-ant-…">
-        <button class="btn-access-save" onclick="saveApiKey()">Save Key</button>
+        <button class="btn-access-save" id="saveKeyBtn">Save Key</button>
       </div>
       <div class="demo-row">
-        <button class="btn-demo" onclick="runDemo()">▶ Load Demo</button>
+        <button class="btn-demo" id="demoBtn">▶ Load Demo</button>
         <span class="access-mode-chip mode-none" id="modechip">No Key</span>
         <span class="demo-hint">See full analysis sample</span>
       </div>
@@ -53,7 +54,7 @@
     </div>
 
     <div class="run-row">
-      <button class="btn-run" id="runBtn" onclick="runBrief()">
+      <button class="btn-run" id="runBtn">
         <div class="spinner"></div>
         <span class="btn-label">Analyze Target</span>
       </button>
@@ -80,7 +81,7 @@
   <!-- STAGE 3: INTERCEPT DOSSIER -->
   <div id="stage-result">
     <div class="stage-result-nav">
-      <button class="btn-reset" onclick="resetToInput()">← Run a New Analysis</button>
+      <button class="btn-reset" id="resetBtn">← Run a New Analysis</button>
     </div>
 
     <div id="results">
@@ -129,7 +130,7 @@
         <div class="opener-card" id="openerCard" style="display:none">
           <div class="opener-head">
             <div class="opener-label">Your Drafted Opener — paste, tweak, send</div>
-            <button class="btn-opener-copy" id="openerCopyBtn" onclick="copyOpener()">Copy</button>
+            <button class="btn-opener-copy" id="openerCopyBtn">Copy</button>
           </div>
           <div class="opener-body" id="openerBody"></div>
         </div>

@@ -128,4 +128,10 @@ function resetToInput() {
 window.addEventListener('DOMContentLoaded', () => {
   initAccessTerminal();
   document.getElementById('stage-input').classList.add('active');
+
+  document.getElementById('saveKeyBtn').addEventListener('click', saveApiKey);
+  document.getElementById('demoBtn').addEventListener('click', runDemo);
+  document.getElementById('runBtn').addEventListener('click', runBrief);
+  document.getElementById('resetBtn').addEventListener('click', resetToInput);
+  document.getElementById('openerCopyBtn').addEventListener('click', copyOpener);
 });
