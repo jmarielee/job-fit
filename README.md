@@ -1,8 +1,10 @@
-# Mini Job Fit Scanner
+# Job Fit Operator
 
 **An operator that decides whether you should apply for a job — and shows you exactly why.**
 
 Bad job-search decisions waste more than time. They burn tailoring effort, referral capital, and hope on roles where the screen-out was visible before the application ever went in — or talk you out of winnable offers. This operator replaces the gut-check with a computed verdict and an adversarial pressure-test.
+
+**The folder is the operator.** Drop the `operator/` folder into a Claude Project and Claude runs the whole triage from the markdown alone: the files aren't documentation *about* the operator, they **are** the operator. The hosted version (live demo below) is that folder's hardened deployment, with one upgrade — the scoring runs in code, so the number is reproducible math rather than the model's judgment. Same rules, same report, sturdier spine.
 
 Paste a job description and a resume. The operator returns one of three calls — **Apply / Apply with Caution / Do Not Apply** — plus a 0–100 survivability score, the single gate most likely to screen you out, the objections each gatekeeper will raise, and the highest-leverage fixes. It decides and routes. It never kicks the question back.
 
@@ -92,37 +94,35 @@ And the operator finishes the job: every report ends with the first move **alrea
 - **Entry-level calibration** — career-changer-friendly JDs get benchmarked against realistic peers, not senior lateral hires.
 - **Paper-clear / room-skeptical divergence** — when labels say "qualified" but evaluators lean skip, the observer is required to name it. It's the highest-value read in the report.
 
-Full logic with the actual constants: [`rules.md`](rules.md). Worked decisions including edge cases: [`examples.md`](examples.md).
-
-## The folder is the operator
-
-The markdown files in this repo aren't documentation *about* the operator — they **are** the operator. Load `identity.md`, `rules.md`, `examples.md`, and `reference/` into a Claude Project, paste a JD and a resume, and Claude runs the same triage with the same decision logic. The web app is that folder's **hardened deployment**: identical rules, with one upgrade — the scoring moves from trusted-to-the-model into deterministic code, so the number becomes reproducible math instead of judgment.
+Full logic with the actual constants: [`operator/rules.md`](operator/rules.md). Worked decisions including edge cases: [`operator/examples.md`](operator/examples.md).
 
 ## Folder map
 
 ```
 job-fit/
-├── README.md          ← you are here
-├── identity.md        ← what this operator owns, and what it doesn't
-├── rules.md           ← the decision logic: weights, guards, verdict bands
-├── examples.md        ← three worked decisions, including two edge cases
-├── JUDGE_GUIDE.md     ← verify every guardrail in 5 minutes, paste-ready tests
-├── report-template.md ← output format for the folder-as-operator version
-├── reference/
-│   ├── scoring-rubric.md      ← the math, line by line
-│   └── evaluator-personas.md  ← the three incentive models + observer
-├── index.html         ← the live operator (single-page, zero build step)
-├── scoring.js         ← scoring brain + system prompt + API call
-├── render.js          ← report rendering
-├── app.js             ← init, BYOK key handling, demo mode
+├── README.md              ← you are here
+├── JUDGE_GUIDE.md         ← verify every guardrail in 5 minutes, paste-ready tests
+├── operator/              ← the deliverable: drop this folder into a Claude Project
+│   ├── identity.md            ← what this operator owns, and what it doesn't
+│   ├── rules.md               ← the decision logic: weights, guards, verdict bands
+│   ├── examples.md            ← three worked decisions, including two edge cases
+│   ├── report-template.md     ← output format for the folder-as-operator version
+│   └── reference/
+│       ├── scoring-rubric.md      ← the math, line by line
+│       └── evaluator-personas.md  ← the three incentive models + observer
+├── index.html             ← the live web operator (single-page, zero build step)
+├── scoring.js             ← scoring brain + system prompt + API call
+├── render.js              ← report rendering
+├── app.js                 ← init, BYOK key handling, demo mode
 └── styles.css
 ```
 
 ## How to run it
 
-1. **Zero setup:** open the [live demo](https://jmarielee.github.io/job-fit) → **Load Demo**. The sample runs through the *real* scoring engine — the number you see is computed, not canned.
-2. **Real run:** paste your [Anthropic API key](https://console.anthropic.com/) (stored in your browser's localStorage only, sent directly to the API — no server, no proxy), then paste a JD and resume. ~20–40 seconds.
-3. **Self-host:** clone, open `index.html`. No build, no dependencies.
+1. **As a folder (this is the deliverable).** Open a Claude Project, add the `operator/` folder (`identity.md`, `rules.md`, `examples.md`, `report-template.md`, and `reference/`), then paste a job description and a resume. Claude runs the same triage and returns the full routed report, with the scoring shown step by step so you can check it by hand.
+2. **Zero-setup web demo.** Open the [live demo](https://jmarielee.github.io/job-fit) → **Load Demo**. No key. The sample runs through the real scoring engine, so the number is computed, not canned.
+3. **Real web run.** Paste your [Anthropic API key](https://console.anthropic.com/) (stored in your browser's localStorage only, sent directly to the API — no server, no proxy), then paste a JD and resume. ~20–40 seconds.
+4. **Self-host.** Clone, open `index.html`. No build, no dependencies.
 
 ## Trust boundaries
 
