@@ -129,7 +129,7 @@ job-fit/
 Two classes of untrusted input, each contained by design:
 
 - **The API key never leaves the browser.** BYOK means the key lives in `localStorage` and goes directly to the Anthropic API — no server, no proxy, nothing logged or stored. Closing the tab on a shared machine? Clear the key with one click.
-- **The JD and resume are the only untrusted text**, and they only reach the *labeling* layer. A prompt injection planted in a job posting can at worst distort labels — it cannot reach the scoring math, fabricate a number, or trigger any action, because the score is computed in code from the labels and the operator takes no actions beyond rendering a report. Distorted labels also remain visible and auditable in the output, so a poisoned run looks wrong instead of silently lying.
+- **The JD and resume are the only untrusted text**, and they reach only the labeling layer. A prompt injection planted in a job posting can at worst distort labels — it cannot reach the scoring math, fabricate a number, or trigger any action, because the score is computed in code from the labels and the operator takes no actions beyond rendering a report. Every rendered field is HTML-escaped and a strict Content-Security-Policy restricts the page to a single connection (the Anthropic API), so a poisoned posting can't run code in your browser or send your key anywhere. Distorted labels also remain visible and auditable in the output, so a poisoned run looks wrong instead of silently lying.
 
 ## Out of scope
 
