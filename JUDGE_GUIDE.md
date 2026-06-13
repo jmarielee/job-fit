@@ -238,4 +238,4 @@ slightly between runs. These test inputs are written to be unambiguous
 ("required," "must hold," "or eligibility to obtain"). What can never vary:
 given the same labels, `scoring.js` produces the same number, the same caps,
 the same gate, and the same recommendation — and all of it is shown work you can
-recompute by hand from [`reference/scoring-rubric.md`](reference/scoring-rubric.md).
+recompute by hand from [`reference/scoring-rubric.md`](operator/reference/scoring-rubric.md).
