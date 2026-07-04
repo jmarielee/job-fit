@@ -6,6 +6,8 @@ This is the heart of the operator. Every rule below is enforced in code (`scorin
 
 The LLM's only scoring-relevant output is a set of labels on JD line-items and candidate strengths. The number, verdict, and recommendation are computed deterministically from those labels. Identical labels always produce an identical score. This makes the verdict auditable and immune to the adversarial persona's mood.
 
+The labels themselves are stabilized three ways: a majority vote across three independent readings (ties go to the temperature-0 anchor, disagreements flagged CONTESTED), a human-editable Evidence Ledger where corrections re-score instantly in code (edited items marked OPERATOR), and a per-input cache — the same JD and resume reuse the same audited labels, so the same inputs return the same number.
+
 ## 1. Labeling rules (Mode 1 — neutral analyst)
 
 Each JD line-item gets four labels:
@@ -45,11 +47,12 @@ Weights:
 - Base score = 100 × (1 − normalized gap).
 - **Edge bonus:** best strength that maps to a real JD need adds +12 (core) or +6 (supporting), scaled by remaining headroom — a bonus can polish a strong case, never rescue a weak one.
 
-## 3. Hard guardrails (in order)
+## 3. Hard guardrails
 
 1. **Realism ceiling — 90.** The room is never a sure thing. No output exceeds 90.
 2. **Required-gate cap — 45.** If **2+** items that are `required` AND (`core` or `supporting`) AND `missing` AND `obtainable: false`, the score is capped at 45 regardless of strengths. **Preferred items can never trigger this cap.**
 3. **Confidence floor.** If the JD decomposes into fewer than 3 items, or either input is under 200 characters, the score is clamped to 40–65 and the report is flagged `low confidence`. Thin evidence cannot produce an extreme verdict in either direction.
+4. **Core-gate ceiling — 74.** The Gate is the single highest-severity item that is `required`, `core` or `supporting`, `missing` or `partial`, and not obtainable — the one requirement most likely to end the application at a screen, before a human weighs the whole picture. Ranking: missing before partial, then core before supporting, then by weight. If the gate is **core**, the score is capped at 74 — a live core gate can never read as Strong Candidate; it holds the verdict in Viable but Exposed until the gate is neutralized. A supporting gate doesn't cap the number, but any live gate blocks a clean "Apply" (see §4). A gate never rescues a weak score.
 
 ## 4. Verdict and routing
 
@@ -67,6 +70,7 @@ Recommendation combines score (the floor) with the committee vote (evaluators sc
 - **Score ≥ 55:** "Apply" only if 2+ evaluators lean apply AND strengths dominate gaps (S > 1.3 × G); otherwise "Apply with Caution"
 - **Score 45–54:** "Apply with Caution" only if 2+ evaluators lean apply; otherwise "Do Not Apply"
 - **Score < 45:** "Do Not Apply" — no committee vote can override
+- **Any live gate** (core or supporting): a clean "Apply" is downgraded to "Apply with Caution." The gate is identified in code from the same labels as everything else (guardrail 4) — the one screen-out risk is never left off the recommendation.
 
 ## 5. Escalation rules
 
