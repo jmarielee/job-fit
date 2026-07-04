@@ -30,6 +30,9 @@ TIE_FACTOR   = 1.3   // edge-vs-gap dominance threshold
 
 - **Guard 1 — required-gate cap:** count items where `tier === 'required'` AND centrality ∈ {core, supporting} AND `status === 'missing'` AND `obtainable === false`. If count ≥ 2 → `score = min(score, 45)`. The cap reason is surfaced in the report.
 - **Guard 2 — confidence floor:** if JD items < 3, or resume < 200 chars, or JD < 200 chars → `score = clamp(score, 40, 65)` and confidence is flagged `low`.
+- **Guard 3 — core-gate ceiling:** the gate is the single highest-severity item where `tier === 'required'` AND centrality ∈ {core, supporting} AND status ∈ {missing, partial} AND `obtainable === false` (ranked missing before partial, then core before supporting, then by weight). If the gate is **core** → `score = min(score, 74)`. A live core gate can never read as Strong Candidate — the score is held in Viable but Exposed until the gate is neutralized. A supporting gate doesn't cap the number, but any live gate downgrades a clean Apply to Apply with Caution.
+
+Guards 1 and 3 are why two runs of the same inputs used to swing between exactly 45 and 74 when the labeling layer flipped one borderline item: those are the two constants. Labels are now majority-voted, human-auditable in the Evidence Ledger, and cached per JD+resume pair — same labels, same guards, same number.
 
 ## Verdict bands (score only)
 
