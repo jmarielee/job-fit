@@ -1,86 +1,60 @@
-# Rules — The Decision Logic
+# Scoring Rubric — The Math, Line by Line
 
-This is the heart of the operator. Every rule below is enforced in code (`scoring.js`) or in the system prompt's labeling instructions — none of it is "use good judgment."
+Everything below lives in `scoring.js` as the constants and functions named here. Change the constants at the top of the file to retune behavior; nothing else needs to move.
 
-## Division of labor: the model labels, the math decides
+## Constants
 
-The LLM's only scoring-relevant output is a set of labels on JD line-items and candidate strengths. The number, verdict, and recommendation are computed deterministically from those labels. Identical labels always produce an identical score. This makes the verdict auditable and immune to the adversarial persona's mood.
+```js
+TIER_W   = { required: 1.0, preferred: 0.35 }
+CENT_W   = { core: 1.0, supporting: 0.6, peripheral: 0.3 }
+STATUS_F = { missing: 1.0, partial: 0.5, meets: 0.0 }
+EDGE_BONUS   = { core: 12, supporting: 6, peripheral: 0 }
+REALISM_CEIL = 90    // the room is never a sure thing
+CAP_VALUE    = 45    // required-gate cap
+GATE_CORE_CEIL = 74  // a live core gate can't read as Strong Candidate
+TIE_FACTOR   = 1.3   // edge-vs-gap dominance threshold
+```
 
-The labels themselves are stabilized three ways: a majority vote across three independent readings (ties go to the temperature-0 anchor, disagreements flagged CONTESTED), a human-editable Evidence Ledger where corrections re-score instantly in code (edited items marked OPERATOR), and a per-input cache — the same JD and resume reuse the same audited labels, so the same inputs return the same number.
+## Pipeline
 
-## 1. Labeling rules (Mode 1 — neutral analyst)
+1. **Item weight** `w = TIER_W[tier] × CENT_W[centrality]`
+   - e.g. a preferred/peripheral item weighs 0.35 × 0.3 = **0.105** — about a tenth of a required/core item.
+2. **Gap mass** `G = Σ w × STATUS_F[status]`, with one softener: if `obtainable && status === 'missing'`, the factor is downgraded to `partial` (0.5).
+3. **Normalized gap** `gNorm = G / Σw`
+4. **Base** `base = 100 × (1 − gNorm)`
+5. **Edge bonus** From the *best* strength with `mapsToNeed: true`: +12 core / +6 supporting, scaled by headroom:
+   `effectiveBonus = bonus × (1 − base/100)`
+   A 75-base case gets a quarter of the bonus; a 40-base case gets most of it — but the cap and bands below keep that from rescuing a gated case.
+6. **Ceiling** `score = min(90, base + effectiveBonus)`
 
-Each JD line-item gets four labels:
+## Guards
 
-**tier** — from the JD's own words, not interpretation:
-- `required`: "required", "must have", "minimum", "X+ years"
-- `preferred`: "preferred", "strongly preferred", "a plus", "nice to have", "ideally". *Strongly preferred is still preferred.* Ambiguous → preferred.
+- **Guard 1 — required-gate cap:** count items where `tier === 'required'` AND centrality ∈ {core, supporting} AND `status === 'missing'` AND `obtainable === false`. If count ≥ 2 → `score = min(score, 45)`. The cap reason is surfaced in the report.
+- **Guard 2 — confidence floor:** if JD items < 3, or resume < 200 chars, or JD < 200 chars → `score = clamp(score, 40, 65)` and confidence is flagged `low`.
+- **Guard 3 — core-gate ceiling:** the gate is the single highest-severity item where `tier === 'required'` AND centrality ∈ {core, supporting} AND status ∈ {missing, partial} AND `obtainable === false` (ranked missing before partial, then core before supporting, then by weight). If the gate is **core** → `score = min(score, 74)`. A live core gate can never read as Strong Candidate — the score is held in Viable but Exposed until the gate is neutralized. A supporting gate doesn't cap the number, but any live gate downgrades a clean Apply to Apply with Caution.
 
-**centrality** — judged against the role's primary function:
-- `core`: what the role primarily exists to do
-- `supporting`: enables the core work
-- `peripheral`: tools/frameworks incidental to the role's judgment (a specific framework is usually peripheral for a design-judgment role)
+Guards 1 and 3 are why two runs of the same inputs used to swing between exactly 45 and 74 when the labeling layer flipped one borderline item: those are the two constants. Labels are now majority-voted, human-auditable in the Evidence Ledger, and cached per JD+resume pair — same labels, same guards, same number.
 
-**status** — strictly from resume evidence:
-- `meets`: demonstrated work that genuinely satisfies the requirement — even when described in the JD's own language. Vocabulary overlap *alone* is never meets, but real capability is never downgraded merely for sharing the JD's wording.
-- `partial`: evidence is adjacent or incomplete
-- `missing`: no evidence at all
+## Verdict bands (score only)
 
-**obtainable** — true in exactly two cases, both read from JD text:
-1. The JD offers the credential as acquirable: "or eligibility to obtain", "willingness to learn", "training provided"
-2. The item is a *duty* — work performed on the job (appears under Responsibilities/Day-to-Day, or uses performance verbs: administer, record, prepare, maintain, draft) — **unless** the JD demands prior performance of that specific duty ("X years doing Y", "experience administering X required")
+`≥75` Strong Candidate · `55–74` Viable but Exposed · `35–54` Long Shot · `<35` Do Not Apply
 
-Hard prerequisites (active credential now, mandatory years threshold, license with no "or obtain" escape hatch) are always `obtainable: false`.
+## Recommendation (score floor + committee vote)
 
-## 2. Scoring math (deterministic, in code)
+Each evaluator with `score ≥ 55` counts as an *apply* lean. Edge dominance: `S > 1.3 × G` (S = summed mapped-strength weight).
 
-Weights:
+| Score | Condition | Recommendation |
+|---|---|---|
+| ≥ 55 | 2+ apply leans AND edge dominance | Apply |
+| ≥ 55 | otherwise | Apply with Caution |
+| 45–54 | 2+ apply leans | Apply with Caution |
+| 45–54 | otherwise | Do Not Apply |
+| < 45 | always | Do Not Apply |
 
-| Tier | Weight | | Centrality | Weight | | Status | Gap factor |
-|---|---|---|---|---|---|---|---|
-| required | 1.00 | | core | 1.00 | | missing | 1.0 |
-| preferred | 0.35 | | supporting | 0.60 | | partial | 0.5 |
-| | | | peripheral | 0.30 | | meets | 0.0 |
+## Properties this buys
 
-- Item weight = tier × centrality. Gap `G` = Σ(weight × gap factor); normalized against total weight.
-- **Obtainable softener:** an obtainable item labeled `missing` is scored as `partial` (0.5). Trainable gaps are friction, not gates.
-- Base score = 100 × (1 − normalized gap).
-- **Edge bonus:** best strength that maps to a real JD need adds +12 (core) or +6 (supporting), scaled by remaining headroom — a bonus can polish a strong case, never rescue a weak one.
-
-## 3. Hard guardrails
-
-1. **Realism ceiling — 90.** The room is never a sure thing. No output exceeds 90.
-2. **Required-gate cap — 45.** If **2+** items that are `required` AND (`core` or `supporting`) AND `missing` AND `obtainable: false`, the score is capped at 45 regardless of strengths. **Preferred items can never trigger this cap.**
-3. **Confidence floor.** If the JD decomposes into fewer than 3 items, or either input is under 200 characters, the score is clamped to 40–65 and the report is flagged `low confidence`. Thin evidence cannot produce an extreme verdict in either direction.
-4. **Core-gate ceiling — 74.** The Gate is the single highest-severity item that is `required`, `core` or `supporting`, `missing` or `partial`, and not obtainable — the one requirement most likely to end the application at a screen, before a human weighs the whole picture. Ranking: missing before partial, then core before supporting, then by weight. If the gate is **core**, the score is capped at 74 — a live core gate can never read as Strong Candidate; it holds the verdict in Viable but Exposed until the gate is neutralized. A supporting gate doesn't cap the number, but any live gate blocks a clean "Apply" (see §4). A gate never rescues a weak score.
-
-## 4. Verdict and routing
-
-Verdict follows score bands only — the committee adds nuance, never a veto:
-
-| Score | Verdict |
-|---|---|
-| ≥ 75 | Strong Candidate |
-| 55–74 | Viable but Exposed |
-| 35–54 | Long Shot |
-| < 35 | Do Not Apply |
-
-Recommendation combines score (the floor) with the committee vote (evaluators scoring ≥ 55 lean *apply*):
-
-- **Score ≥ 55:** "Apply" only if 2+ evaluators lean apply AND strengths dominate gaps (S > 1.3 × G); otherwise "Apply with Caution"
-- **Score 45–54:** "Apply with Caution" only if 2+ evaluators lean apply; otherwise "Do Not Apply"
-- **Score < 45:** "Do Not Apply" — no committee vote can override
-- **Any live gate** (core or supporting): a clean "Apply" is downgraded to "Apply with Caution." The gate is identified in code from the same labels as everything else (guardrail 4) — the one screen-out risk is never left off the recommendation.
-
-## 5. Escalation rules
-
-- **Low confidence → flag, don't fake.** Clamped score + visible `low` confidence chip. The user is told the evidence is thin.
-- **Divergence → must be named.** When labels say the candidate clears the bar on paper but the committee leans skeptical (or vice versa), the observer's committee read is *required* to state the divergence explicitly. It is the highest-value observation in the report.
-- **Committee split → reported honestly.** "Committee divided — 2 of 3 would advance you" appears verbatim; the split shades the recommendation but cannot veto a healthy score.
-
-## 6. Framing constraints
-
-- A `preferred` gap is friction to neutralize — never "table stakes," never "a wall."
-- A `required` gap on a core or supporting item is a real gate and is said plainly.
-- Clear rejects get **terse** reports: verdict + the two highest-leverage facts. No padding an unwinnable case with exhaustive analysis.
-- Every narrative field has hard caps (≤3 items per list, ≤160 chars per string) and must add new information — the report never says the same thing three times.
+- **Reproducible:** same labels → same score, every run.
+- **Auditable:** every point lost traces to a labeled item with a weight.
+- **Persona-proof:** the adversarial narrative voice has no channel into the number.
+- **Honest at the extremes:** the ceiling kills false certainty upward; the confidence floor kills it in both directions on thin input; the cap kills wishful thinking past hard gates.
+- **Demo-honest:** demo mode routes the sample labels through this same engine — the demo score is computed live, not hardcoded.
