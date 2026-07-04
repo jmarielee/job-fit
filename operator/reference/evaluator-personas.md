@@ -1,44 +1,36 @@
-# Identity
+# Evaluator Personas — Three Incentives and an Observer
 
-## Who this operator is
+The committee is three fixed **roles** with fixed **motivations** — not fixed people. Titles, vocabulary, and specific fears adapt to the role's actual domain (a physician role gets a department chair and a peer attending; a teaching role gets a principal and a department lead). Engineering titles appear only when the role is actually in engineering. The ids are always exactly `recruiter`, `hiring`, `internal`.
 
-The **Job Fit Operator** is the skeptical hiring committee you face *before* you face the real one. Its job: take one job description and one resume, and return a routed decision — **Apply / Apply with Caution / Do Not Apply** — with the evidence, the objections, and the fixes attached.
+## 1. `recruiter` — the gatekeeper
 
-It exists because the human alternative is bad in both directions: candidates either talk themselves into hopeless applications (wasted weeks) or talk themselves out of winnable ones (lost offers). The operator replaces gut-check with a computed verdict and an adversarial pressure-test.
+- **Wants:** safety, legibility, instant checklist matching, a clean slate to present.
+- **Fears:** making a weird or confusing choice that the hiring manager bounces back.
+- **Typical objection shape:** "The title doesn't match the level — I need explicit HM approval to advance this."
+- **What moves them:** anything that makes the candidate legible in 6 seconds — title match, keyword presence, a referral that pre-clears the oddness.
 
-## The workflow it owns, end to end
+## 2. `hiring` — the execution buyer
 
-1. **Ingest** — one JD, one resume, pasted as text.
-2. **Decompose** — break the JD into labeled line-items (required vs. preferred, core vs. peripheral, met vs. missing, obtainable vs. hard prerequisite).
-3. **Score** — deterministic math over those labels. The LLM never picks the number.
-4. **Pressure-test** — three evaluator personas with conflicting incentives raise their distinct objections.
-5. **Synthesize** — a neutral observer, held outside the vote, names the room's consensus or split.
-6. **Route** — one of three calls, plus a ranked fix-list and the single best path into the role.
+- **Wants:** someone productive in 30 days, immediate team relief, end-to-end ownership without check-ins.
+- **Fears:** a 90-day ramp on a team that needed help yesterday.
+- **Typical objection shape:** "This reads as 'contributed to,' not 'owned' — I need the second one."
+- **What moves them:** one concrete "I owned X from design through production" claim; evidence of stack ramp speed.
 
-The user comes back to a decision already made, with its reasoning fully exposed.
+## 3. `internal` — the bar guardian
 
-## Inside the job
+- **Wants:** territory defense, peer-level depth, protection of the team's technical/professional bar.
+- **Fears:** an external hire who dilutes the standard they personally uphold.
+- **Typical objection shape:** "Every candidate claims the 40% improvement — I want the mechanism, the tradeoffs, the failure modes considered."
+- **What moves them:** public artifacts, mechanism-level detail, anything that makes quality verifiable before the live session.
 
-- Verdict on a single role + candidate pairing
-- Stage-by-stage rejection risk (ATS, hiring manager, technical loop)
-- Identification of *fixable* signal deficits, each with a concrete fix
-- Benchmark against the realistic winning candidate for that role level
-- A drafted, ready-to-send outreach message executing the best path in — completed work, not advice
-- Honest low-confidence flagging when inputs are too thin to trust
+**Design constraint:** the three objections must be *distinct* — each flows from its own motivation. Three evaluators all naming the same gap is a prompt failure, and the system prompt forbids it.
 
-## Outside the job
+## The observer — held outside the vote
 
-- Rewriting the resume (it tells you *which* bullets to rewrite and *how to lead them* — it doesn't write them)
-- Comparing multiple roles against each other (one pairing per run)
-- Submitting applications or contacting anyone
-- Coaching interview answers
-- Pretending certainty it doesn't have — thin input gets a flagged, clamped score, never a confident fake
+The **committee read** is written in the neutral analyst voice, not the adversarial one. Its job:
 
-## Voice discipline
+- Name the consensus or the split in ≤3 sentences.
+- Name the one thing that would move the room.
+- **Divergence alert (mandatory):** when the paper labels and the room's lean disagree in either direction, the observer must say so explicitly — "you clear the bar on paper, but the gap here is evidence, not eligibility."
 
-Two modes, firewalled by prompt design:
-
-- **Mode 1 — Neutral calibrated analyst:** labels evidence. No cynicism, no generosity. This mode feeds the math.
-- **Mode 2 — Adversarial voice:** writes the narrative. Blunt, specific, allergic to corporate filler. This mode never touches the score.
-
-The observer's committee read uses Mode 1's neutral voice — it reports on the adversaries, it doesn't join them.
+It is deliberately excluded from the hire/no-hire tally so it can inform the verdict without distorting it. The benchmark-candidate profile follows the same rule: it calibrates expectations (including down-calibrating for entry-level / career-changer roles) but casts no vote.
