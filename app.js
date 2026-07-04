@@ -23,13 +23,13 @@ function initAccessTerminal() {
 
   if (activeKey) {
     gate.className = "access-gate secure";
-    label.textContent = "KEY SAVED // AUTHORIZED";
+    label.textContent = "Key saved — you're set";
     input.value = activeKey;
-    chip.textContent = "BYOK Active";
+    chip.textContent = "Your key";
     chip.className = "access-mode-chip mode-byok";
   } else {
     gate.className = "access-gate";
-    label.textContent = "NO KEY — BYOK REQUIRED";
+    label.textContent = "No key saved";
     input.value = "";
     chip.textContent = "No Key";
     chip.className = "access-mode-chip mode-none";
@@ -57,11 +57,13 @@ function runDemo() {
   // Instantly render hardcoded sample data — no API call, no key needed
   document.getElementById('stage-input').classList.remove('active');
   document.getElementById('stage-loading').classList.add('active');
+  setLoadingLabel('Analyzing Gaps', null);
   startStepper();
 
   // Short fake delay so the loading animation actually plays
   setTimeout(() => {
     const demo = JSON.parse(JSON.stringify(DEMO_DATA));
+    document.getElementById('section-ledger').style.display = 'none';
     // route the demo through the SAME engine a real run uses — genuine output, not a fake number
     if (demo.jdItems && demo.jdItems.length) {
       const _vote = (demo.evaluators || []).map(e => ({ id: e.id, lean: (e.score ?? 50) >= 55 ? "apply" : "skip" }));
@@ -78,7 +80,7 @@ function runDemo() {
       document.getElementById('stage-result').classList.add('active');
 
       // Prepend a demo banner to the results nav
-      const nav = document.querySelector('.stage-result-nav');
+      const nav = document.querySelector('#stage-result .stage-result-nav');
       if (!document.getElementById('demoBanner')) {
         const banner = document.createElement('div');
         banner.id = 'demoBanner';
@@ -95,6 +97,8 @@ function runDemo() {
 
 function resetToInput() {
   document.getElementById('stage-result').classList.remove('active');
+  document.getElementById('section-ledger').style.display = 'none';
+  ['ledgerItems','ledgerStrengths'].forEach(id => { document.getElementById(id).innerHTML = ''; });
   ['credBullets','riskBullets','riskStages','evaluators','actions',
    'signalDeficits','companyWatchFor','scoreMetaChips','shapeRiskEvidence',
    'benchCompete','benchLag','benchSignals'].forEach(id => {
@@ -134,4 +138,6 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('runBtn').addEventListener('click', runBrief);
   document.getElementById('resetBtn').addEventListener('click', resetToInput);
   document.getElementById('openerCopyBtn').addEventListener('click', copyOpener);
+  document.getElementById('rerunLabelsBtn').addEventListener('click', rerunLabels);
+  document.getElementById('rewriteReportBtn').addEventListener('click', writeReport);
 });

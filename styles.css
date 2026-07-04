@@ -7,7 +7,7 @@
     /* Typography */
     --font-sans: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'DM Mono', monospace;
-    --font-tech: 'Roboto Mono', monospace;
+    --font-tech: 'DM Mono', monospace;
 
     /* Text Colors */
     --text-primary: #0f172a;
@@ -350,6 +350,9 @@
   .result-section.collapsible.collapsed > .section-label::after { content: '\25B8'; }
   .result-section.collapsible.collapsed > .section-label { margin-bottom: 0; }
   .result-section.collapsible.collapsed > *:not(.section-label) { display: none !important; }
+  .result-section.collapsible.collapsed > .section-label .section-title { color: var(--text-muted); font-size: 0.95em; }
+  .result-section.collapsible.collapsed > .section-label .section-chip { opacity: 0.55; }
+  .result-section.collapsible.collapsed { padding-top: 0.35rem; padding-bottom: 0.35rem; }
 
   .trust-note {
     font-family: var(--font-mono);
@@ -1072,9 +1075,9 @@
   /* --- DRAFTED OPENER (ready-to-send artifact) --- */
   .opener-card {
     background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-top: 4px solid var(--risk-low);
-    padding: 1.5rem;
+    border: 2px solid var(--border-color);
+    border-top: 8px solid var(--border-color);
+    padding: 1.75rem 1.5rem;
     margin-top: 1.5rem;
   }
   .opener-head {
@@ -1115,4 +1118,108 @@
     background: var(--bg-main);
     border: 1px solid var(--border-subtle);
     padding: 1rem 1.25rem;
+  }
+
+  /* --- EVIDENCE LEDGER — the human-audit stage --- */
+  .ledger-wrap { border: 2px solid var(--border-color); background: var(--bg-main); margin-top: 0.75rem; }
+  .ledger-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 2rem; padding: 1.5rem; border-bottom: 2px solid var(--border-color);
+    flex-wrap: wrap;
+  }
+  .ledger-title {
+    font-family: var(--font-sans); font-weight: 700; font-size: 1.4rem;
+    color: var(--text-primary); margin: 0.35rem 0;
+  }
+  .ledger-sub { color: var(--text-secondary); font-size: 0.9rem; max-width: 34rem; }
+  /* Sticky score bar — the cause-and-effect instrument. Stays in view while
+     editing; pulses on every recompute; goes hazard-tinted when a cap engages. */
+  .ledger-scorebar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;
+    padding: 0.7rem 1.5rem;
+    background: var(--border-color); color: var(--bg-main);
+    border-bottom: 2px solid var(--border-color);
+    transition: background 0.35s ease;
+  }
+  .scorebar-main { display: flex; align-items: baseline; gap: 0.75rem; }
+  .ledger-score-num {
+    font-family: var(--font-tech); font-weight: 700;
+    font-size: 2.1rem; line-height: 1; color: inherit;
+    transition: transform 0.15s ease;
+  }
+  .ledger-score-verdict {
+    font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.12em; color: inherit;
+  }
+  .ledger-score-note {
+    font-family: var(--font-mono); font-size: 0.64rem;
+    color: inherit; opacity: 0.75; line-height: 1.5;
+  }
+  .ledger-scorebar.capped { background: var(--risk-critical); }
+  @keyframes scorePulse {
+    0% { transform: scale(1); } 35% { transform: scale(1.28); } 100% { transform: scale(1); }
+  }
+  .ledger-score-num.pulse { animation: scorePulse 0.45s ease; }
+  @media (prefers-reduced-motion: reduce) { .ledger-score-num.pulse { animation: none; } }
+  .ledger-cache-note {
+    font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-muted); background: var(--bg-surface);
+    border-bottom: 1px dashed var(--border-subtle); padding: 0.6rem 1.5rem;
+  }
+  .ledger-grid-label {
+    font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.14em; color: var(--text-primary);
+    padding: 1rem 1.5rem 0.5rem;
+  }
+  .ledger-row { padding: 0.85rem 1.5rem; border-top: 1px solid var(--border-subtle); }
+  .ledger-row.contested { border-left: 4px solid var(--risk-medium); background: var(--risk-medium-bg); }
+  .ledger-row.human { border-left: 4px solid var(--border-color); }
+  .ledger-row-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: 1rem; margin-bottom: 0.5rem;
+  }
+  .ledger-item-text { font-size: 0.92rem; color: var(--text-primary); }
+  .ledger-chip {
+    flex: none; font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700;
+    letter-spacing: 0.1em; padding: 0.15rem 0.5rem; border: 1px solid currentColor;
+  }
+  .chip-unanimous { color: var(--text-muted); }
+  .chip-contested { color: var(--risk-medium); }
+  .chip-human     { color: var(--bg-main); background: var(--border-color); border-color: var(--border-color); }
+  .chip-single    { color: var(--text-muted); border-style: dashed; }
+  .ledger-row-ctls { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; }
+  .ledger-ctl { display: flex; flex-direction: column; gap: 0.2rem; }
+  .ledger-ctl-label {
+    font-family: var(--font-mono); font-size: 0.6rem; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--text-muted);
+  }
+  .ledger-ctl select {
+    font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-secondary);
+    background: var(--bg-main); border: 1px solid var(--border-subtle);
+    padding: 0.25rem 0.35rem; border-radius: 0;
+  }
+  /* status: the primary instrument — heavier, colored by value */
+  .ledger-ctl select[data-field="status"] {
+    font-size: 0.82rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; border: 2px solid var(--border-color);
+    padding: 0.35rem 0.5rem; color: var(--text-primary);
+  }
+  .ledger-ctl select[data-field="status"].val-meets   { color: var(--risk-low);      background: var(--risk-low-bg); }
+  .ledger-ctl select[data-field="status"].val-partial { color: var(--risk-medium);   background: var(--risk-medium-bg); }
+  .ledger-ctl select[data-field="status"].val-missing { color: var(--risk-critical); background: var(--risk-critical-bg); }
+  .ledger-ctl select[data-field="status"] + .ledger-ctl-label { color: var(--text-primary); }
+  .ledger-ctl-check { flex-direction: row; align-items: center; gap: 0.4rem; padding-bottom: 0.35rem; }
+  .ledger-ctl-check input { accent-color: var(--border-color); width: 15px; height: 15px; }
+  .ledger-actions {
+    display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
+    padding: 1.5rem; border-top: 2px solid var(--border-color); margin-top: 0.5rem;
+  }
+  .ledger-footnote {
+    font-family: var(--font-mono); font-size: 0.68rem; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--text-muted); padding: 0 1.5rem 1.25rem;
+  }
+  @media (max-width: 640px) {
+    .ledger-scorebar { gap: 0.6rem; padding: 0.6rem 1rem; }
+    .ledger-score-num { font-size: 1.7rem; }
   }

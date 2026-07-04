@@ -24,24 +24,38 @@ Open the [live demo](https://jmarielee.github.io/job-fit) → **Load Demo**. No 
 - **First move:** referral before a cold application — with the outreach opener **already drafted** (the p99-latency hook)
 - **The Score Receipt** (expand it under the verdict): gap mass 1.52, strength mass 1.80, base 62, edge dominance test *balanced* — strengths don't dominate gaps, and the gate is live: two independent reasons the clean "Apply" is withheld
 
-None of this is canned. The demo labels route through the same deterministic engine as a real run — change a label, the number moves; rerun it, the number doesn't. Guardrail-by-guardrail verification with paste-ready test inputs: [`JUDGE_GUIDE.md`](JUDGE_GUIDE.md).
+None of this is canned. The demo labels route through the same deterministic engine as a real run — change a label, the number moves; same labels, same number, every time. The honest claim is exactly that: **same labels always produce the same score.** On live runs the labels themselves come from an LLM, so the operator makes them stable three ways — a majority vote across three independent readings, an editable **Evidence Ledger** inside every report — open it to see, and correct, exactly what the math scored, and a per-input cache so resubmitting the same JD and resume reuses the same audited labels. Guardrail-by-guardrail verification with paste-ready test inputs: [`JUDGE_GUIDE.md`](JUDGE_GUIDE.md).
 
 ---
 
 ## The architecture in 30 seconds
 
-This is not "ask the LLM for a score." The score is **computed, not generated** — the model is only allowed to label evidence. Four separated layers, each with one job:
+This is not "ask the LLM for a score." The score is **computed, not generated** — the model is only allowed to label evidence, and the human audits the evidence before the math runs. Five separated layers, each with one job:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│ 1. NEUTRAL ANALYST (Claude, Mode 1)                             │
+│ 1. NEUTRAL ANALYST × 3 (Claude, labeling pass)                  │
 │    Labels every JD line-item: required/preferred · core/        │
 │    supporting/peripheral · meets/partial/missing · obtainable   │
-│    Explicitly firewalled from the adversarial persona.          │
+│    One temperature-0 anchor extraction + two independent        │
+│    audits of the same item list. Each label is the MAJORITY     │
+│    of three votes; ties fall to the anchor. Structurally        │
+│    firewalled from the adversarial persona — it runs in a       │
+│    separate API call that has never seen the cynical prompt.    │
 └────────────────────────────┬────────────────────────────────────┘
                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│ 2. DETERMINISTIC SCORING BRAIN (scoring.js — pure math)         │
+│ 2. EVIDENCE LEDGER (human-in-the-loop audit)                    │
+│    Every voted label ships inside the report, one tap open.     │
+│    Contested labels (any voter disagreed) flagged for review.   │
+│    Every label editable — edits re-score the live report        │
+│    instantly in code and are marked OPERATOR. The audited       │
+│    ledger is cached per JD+resume pair: same inputs, same       │
+│    ledger, same number. The user is never made to wait on it.   │
+└────────────────────────────┬────────────────────────────────────┘
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ 3. DETERMINISTIC SCORING BRAIN (scoring.js — pure math)         │
 │    Weighted gap analysis + four hard guardrails:                │
 │    · Realism ceiling (90) — the room is never a sure thing      │
 │    · Required-gate cap (45) — strengths can't buy past 2+       │
@@ -53,7 +67,7 @@ This is not "ask the LLM for a score." The score is **computed, not generated** 
 └────────────────────────────┬────────────────────────────────────┘
                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│ 3. ADVERSARIAL COMMITTEE (Claude, Mode 2)                       │
+│ 4. ADVERSARIAL COMMITTEE (Claude, narrative pass)               │
 │    Three evaluator personas with conflicting incentives:        │
 │    · Recruiter — legibility, checklist safety                   │
 │    · Hiring manager — ramp time, execution risk                 │
@@ -62,7 +76,7 @@ This is not "ask the LLM for a score." The score is **computed, not generated** 
 └────────────────────────────┬────────────────────────────────────┘
                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│ 4. NEUTRAL OBSERVER (committee read)                            │
+│ 5. NEUTRAL OBSERVER (committee read)                            │
 │    Held OUTSIDE the vote. Synthesizes the room, names the       │
 │    split, and flags divergence — e.g. "on paper you clear the   │
 │    bar, but the room reads you as unproven."                    │
@@ -111,7 +125,7 @@ job-fit/
 │       ├── scoring-rubric.md      ← the math, line by line
 │       └── evaluator-personas.md  ← the three incentive models + observer
 ├── index.html             ← the live web operator (single-page, zero build step)
-├── scoring.js             ← scoring brain + system prompt + API call
+├── scoring.js             ← scoring brain + two-pass pipeline + majority vote + ledger cache
 ├── render.js              ← report rendering
 ├── app.js                 ← init, BYOK key handling, demo mode
 └── styles.css
@@ -121,7 +135,7 @@ job-fit/
 
 1. **As a folder (this is the deliverable).** Open a Claude Project, add the `operator/` folder (`identity.md`, `rules.md`, `examples.md`, `report-template.md`, and `reference/`), then paste a job description and a resume. Claude runs the same triage and returns the full routed report, with the scoring shown step by step so you can check it by hand.
 2. **Zero-setup web demo.** Open the [live demo](https://jmarielee.github.io/job-fit) → **Load Demo**. No key. The sample runs through the real scoring engine, so the number is computed, not canned.
-3. **Real web run.** Paste your [Anthropic API key](https://console.anthropic.com/) (stored in your browser's localStorage only, sent directly to the API — no server, no proxy), then paste a JD and resume. ~20–40 seconds.
+3. **Real web run.** Paste your [Anthropic API key](https://console.anthropic.com/) (stored in your browser's localStorage only, sent directly to the API — no server, no proxy), then paste a JD and resume. ~40–60 seconds. The report includes the Evidence Ledger — the exact labels the math scored, editable, with the score recomputing live.
 4. **Self-host.** Clone, open `index.html`. No build, no dependencies.
 
 ## Trust boundaries
@@ -129,7 +143,7 @@ job-fit/
 Two classes of untrusted input, each contained by design:
 
 - **The API key never leaves the browser.** BYOK means the key lives in `localStorage` and goes directly to the Anthropic API — no server, no proxy, nothing logged or stored. On a shared machine, clear the key with one click when you're done. While it's stored, the key is readable by code running on the page, as with any browser-based BYOK tool.
-- **The JD and resume are the only untrusted text**, and they reach only the labeling layer. A prompt injection planted in a job posting can at worst distort labels — it cannot reach the scoring math, fabricate a number, or trigger any action, because the score is computed in code from the labels and the operator takes no actions beyond rendering a report. Every rendered field is HTML-escaped and a strict Content-Security-Policy restricts the page to a single connection (the Anthropic API), so a poisoned posting can't run code in your browser or send your key anywhere. Distorted labels also remain visible and auditable in the output, so a poisoned run looks wrong instead of silently lying.
+- **The JD and resume are the only untrusted text**, and they reach only the labeling layer. A prompt injection planted in a job posting can at worst distort labels — it cannot reach the scoring math, fabricate a number, or trigger any action, because the score is computed in code from the labels and the operator takes no actions beyond rendering a report. Every rendered field is HTML-escaped and a strict Content-Security-Policy restricts the page to a single connection (the Anthropic API), so a poisoned posting can't run code in your browser or send your key anywhere. Distorted labels also remain visible and auditable — first in the Evidence Ledger, where a human reviews every label before the score is final, and again in the report — so a poisoned run looks wrong instead of silently lying. An injection would need to fool the majority of three independent readings *and* survive the human audit to move the number.
 
 ## Out of scope
 

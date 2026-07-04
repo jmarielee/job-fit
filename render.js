@@ -7,10 +7,10 @@
 
 const CIRCUMFERENCE = 345.58;
 const RISK_SCORE = { low:18, medium:48, high:76, critical:94 };
-const ALL_SECTION_IDS = ['section-hero','section-committee-read','section-benchmark','section-company','section01','section-signals','section02','section-shaperisk','section03','section-actions'];
+const ALL_SECTION_IDS = ['section-hero','section-ledger','section-committee-read','section-benchmark','section-company','section01','section-signals','section02','section-shaperisk','section03','section-actions'];
 // Sections collapsed by default — the hero, best-path, and "Fix These" stay open so a skimmer
 // gets verdict + odds + the one action without scrolling. Depth is one tap away.
-const COLLAPSIBLE_IDS = ['section-benchmark','section-company','section01','section-signals','section02','section03'];
+const COLLAPSIBLE_IDS = ['section-ledger','section-committee-read','section-benchmark','section-company','section01','section-signals','section02','section03'];
 
 /* ── SMALL RENDER HELPERS ────────────────────────────────────────────────── */
 
@@ -77,12 +77,12 @@ let loadingProgress = 0;
 let loadingStartTime = null;
 
 const loadingMessages = [
-  { threshold:  0, text: 'Executing raw content ingestion…' },
-  { threshold: 20, text: 'Deconstructing resume payload…' },
-  { threshold: 40, text: 'Executing structural compliance matching…' },
-  { threshold: 60, text: 'Running evaluator behavioral simulations…' },
-  { threshold: 80, text: 'Formulating threat matrix variables…' },
-  { threshold: 90, text: 'Finalizing intelligence file…' },
+  { threshold:  0, text: 'Reading the job description…' },
+  { threshold: 20, text: 'Reading your resume against it…' },
+  { threshold: 40, text: 'Labeling every requirement…' },
+  { threshold: 60, text: 'Hearing out each evaluator…' },
+  { threshold: 80, text: 'Weighing the objections…' },
+  { threshold: 90, text: 'Putting the report together…' },
 ];
 
 function drawLoadingArc(pct) {
@@ -109,7 +109,7 @@ function drawLoadingArc(pct) {
   if (pct > 0) {
     ctx.beginPath();
     ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (pct / 100));
-    ctx.strokeStyle = '#e11d48'; // Stark hazard warning color
+    ctx.strokeStyle = '#0f172a'; // ink — red is reserved for live hazards (cap, gate, missing)
     ctx.lineWidth = lw;
     ctx.stroke();
   }
@@ -120,7 +120,7 @@ function startStepper() {
   loadingProgress = 0;
   loadingStartTime = null;
   document.getElementById('loadingPercent').textContent = '0%';
-  document.getElementById('loadingStatus').textContent = 'Loading payload analyzer…';
+  document.getElementById('loadingStatus').textContent = 'Starting the analysis…';
   drawLoadingArc(0);
   function animate(ts) {
     if (!loadingStartTime) loadingStartTime = ts;
@@ -130,6 +130,9 @@ function startStepper() {
     document.getElementById('loadingPercent').textContent = pct + '%';
     let msg = loadingMessages[0].text;
     for (const m of loadingMessages) { if (pct >= m.threshold) msg = m.text; }
+    // Pipeline phases override the canned messages — the loader tells the
+    // truth about which pass is actually running.
+    if (loadingPhaseStatus) msg = loadingPhaseStatus;
     document.getElementById('loadingStatus').textContent = msg;
     drawLoadingArc(loadingProgress);
     rafId = requestAnimationFrame(animate);
@@ -141,7 +144,7 @@ function finishStepper() {
   if (rafId) cancelAnimationFrame(rafId);
   rafId = null;
   document.getElementById('loadingPercent').textContent = '100%';
-  document.getElementById('loadingStatus').textContent = 'Dossier generated.';
+  document.getElementById('loadingStatus').textContent = 'Report ready.';
   drawLoadingArc(100);
 }
 
@@ -547,4 +550,131 @@ function copyOpener() {
     try { document.execCommand('copy'); done(); } catch (e) {}
     document.body.removeChild(ta);
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EVIDENCE LEDGER — the human-audit stage between labeling and scoring.
+   The model extracts. The vote stabilizes. The human corrects. The math
+   scores ONLY what this ledger says. Every control here re-runs
+   computeScore() locally — no API call, no drift, no surprises.
+   ─────────────────────────────────────────────────────────────────────── */
+
+let loadingPhaseStatus = null;
+
+function setLoadingLabel(label, status) {
+  const lab = document.querySelector('.loading-label');
+  if (lab) lab.textContent = label;
+  loadingPhaseStatus = status || null;
+}
+
+const TIER_OPTS   = ['required', 'preferred'];
+const CENT_OPTS   = ['core', 'supporting', 'peripheral'];
+const STATUS_OPTS = ['meets', 'partial', 'missing'];
+
+function _selectHTML(kind, index, field, opts, current) {
+  const options = opts.map(o =>
+    `<option value="${o}"${o === current ? ' selected' : ''}>${o}</option>`).join('');
+  // status is the score-moving control — it carries a value class for color
+  const cls = field === 'status' ? ` class="val-${current}"` : '';
+  return `<label class="ledger-ctl"><span class="ledger-ctl-label">${field}</span>` +
+         `<select${cls} data-kind="${kind}" data-index="${index}" data-field="${field}">${options}</select></label>`;
+}
+function _checkHTML(kind, index, field, current, labelText) {
+  return `<label class="ledger-ctl ledger-ctl-check"><span class="ledger-ctl-label">${labelText}</span>` +
+         `<input type="checkbox" data-kind="${kind}" data-index="${index}" data-field="${field}"${current ? ' checked' : ''}></label>`;
+}
+function _consensusChip(c) {
+  if (!c) return '';
+  if (c.human) return `<span class="ledger-chip chip-human">OPERATOR</span>`;
+  if (c.voters <= 1) return `<span class="ledger-chip chip-single">1 READING</span>`;
+  if (c.contested) {
+    const minAgree = Math.min.apply(null, Object.values(c.fields));
+    return `<span class="ledger-chip chip-contested">${minAgree}/${c.voters} SPLIT</span>`;
+  }
+  return `<span class="ledger-chip chip-unanimous">${c.voters}/${c.voters} UNANIMOUS</span>`;
+}
+
+function renderLedgerRows() {
+  const itemsEl = document.getElementById('ledgerItems');
+  const strengthsEl = document.getElementById('ledgerStrengths');
+  const L = RUN.ledger;
+
+  itemsEl.innerHTML = L.jdItems.map((it, i) => {
+    const c = L.consensus[i];
+    return `<div class="ledger-row${c && c.contested ? ' contested' : ''}${c && c.human ? ' human' : ''}">
+      <div class="ledger-row-head">
+        <span class="ledger-item-text">${esc(it.text)}</span>
+        ${_consensusChip(c)}
+      </div>
+      <div class="ledger-row-ctls">
+        ${_selectHTML('item', i, 'status', STATUS_OPTS, it.status)}
+        ${_selectHTML('item', i, 'tier', TIER_OPTS, it.tier)}
+        ${_selectHTML('item', i, 'centrality', CENT_OPTS, it.centrality)}
+        ${_checkHTML('item', i, 'obtainable', it.obtainable, 'obtainable')}
+      </div>
+    </div>`;
+  }).join('');
+
+  strengthsEl.innerHTML = (L.strengths || []).map((s, i) => {
+    return `<div class="ledger-row${s._human ? ' human' : ''}">
+      <div class="ledger-row-head">
+        <span class="ledger-item-text">${esc(s.text)}</span>
+        ${s._human ? '<span class="ledger-chip chip-human">OPERATOR</span>' : ''}
+      </div>
+      <div class="ledger-row-ctls">
+        ${_selectHTML('strength', i, 'centrality', CENT_OPTS, s.centrality)}
+        ${_checkHTML('strength', i, 'mapsToNeed', s.mapsToNeed, 'maps to a real need')}
+      </div>
+    </div>`;
+  }).join('');
+
+  // One delegated listener per container; change → edit → recompute → repaint chips
+  [itemsEl, strengthsEl].forEach(el => {
+    el.onchange = (e) => {
+      const t = e.target;
+      const kind = t.dataset.kind, index = +t.dataset.index, field = t.dataset.field;
+      if (!kind || !field) return;
+      const value = t.type === 'checkbox' ? t.checked : t.value;
+      applyLedgerEdit(kind, index, field, value);
+      renderLedgerRows(); // repaint so the row's chip flips to OPERATOR
+    };
+  });
+}
+
+function updateLedgerPreview(brain) {
+  const num = document.getElementById('ledgerScoreNum');
+  num.textContent = brain.score;
+  document.getElementById('ledgerScoreVerdict').textContent = brain.verdict;
+  // the cause-and-effect moment: the number visibly reacts to the edit
+  num.classList.remove('pulse');
+  void num.offsetWidth; // restart the animation
+  num.classList.add('pulse');
+  const bar = document.getElementById('ledgerScorebar');
+  if (bar) bar.classList.toggle('capped', !!(brain.capped || brain.gateCapped));
+  const notes = [];
+  if (brain.capped)       notes.push(`⬡ ${CAP_VALUE}-cap engaged — ${brain.reqMiss} required core/supporting items missing`);
+  if (brain.gateCapped)   notes.push(`⬡ ${GATE_CORE_CEIL} core-gate ceiling engaged`);
+  if (brain.gate && !brain.gateCapped) notes.push(`⚠ live gate: ${brain.gate.text}`);
+  if (brain.lowConfidence) notes.push('⬡ low-confidence clamp active — thin inputs');
+  if (!notes.length) notes.push('no caps engaged');
+  document.getElementById('ledgerScoreNote').innerHTML = notes.map(esc).join('<br>');
+}
+
+function renderLedgerSection() {
+  const section = document.getElementById('section-ledger');
+  if (!RUN || !RUN.ledger) { if (section) section.style.display = 'none'; return; } // demo mode has no ledger
+  const cacheNote = document.getElementById('ledgerCacheNote');
+  if (RUN.ledger.fromCache) {
+    cacheNote.style.display = '';
+    cacheNote.textContent = '⬡ Labels reused from cache for this exact JD + resume pair — same ledger, same number. Use Re-run Labels for a fresh extraction.';
+  } else {
+    cacheNote.style.display = 'none';
+  }
+  const contested = (RUN.ledger.consensus || []).filter(c => c.contested).length;
+  const chip = section.querySelector('.section-chip');
+  if (chip) chip.textContent = contested > 0 ? String(contested) + '⚠' : '⬡';
+  renderLedgerRows();
+  updateLedgerPreview(LAST_REPORT && LAST_REPORT._brain ? LAST_REPORT._brain : ledgerScore());
+  section.style.display = '';
+  document.getElementById('rewriteReportBtn').style.display = 'none';
 }

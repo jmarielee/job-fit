@@ -6,7 +6,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.anthropic.com; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>Adversarial Brief — Will You Actually Get This Job?</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=Roboto+Mono:wght@300;400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -27,7 +27,7 @@
           <span class="access-status-indicator" id="accessIndicator"></span>
           BYOK — Anthropic API Key
         </span>
-        <span class="trust-note" style="margin:0" id="accessStatusLabel">NO KEY — BYOK REQUIRED</span>
+        <span class="trust-note" style="margin:0" id="accessStatusLabel">No key saved</span>
       </div>
       <p class="access-gate-desc">Your key stays in your browser only. Get one free from <a href="https://console.anthropic.com/" target="_blank" rel="noopener noreferrer">Anthropic Console</a>.</p>
       <div class="access-input-wrap">
@@ -56,9 +56,9 @@
     <div class="run-row">
       <button class="btn-run" id="runBtn">
         <div class="spinner"></div>
-        <span class="btn-label">Analyze Target</span>
+        <span class="btn-label">Run the Analysis</span>
       </button>
-      <span class="run-hint">Takes about 20–40 seconds</span>
+      <span class="run-hint">Takes about 40–60 seconds</span>
     </div>
 
     <div id="errorBox"><div class="error-inner" id="errorText"></div></div>
@@ -74,7 +74,7 @@
           <span class="loading-label">Analyzing Gaps</span>
         </div>
       </div>
-      <p class="loading-status" id="loadingStatus">Scanning historical indexes…</p>
+      <p class="loading-status" id="loadingStatus">Reading the job description…</p>
     </div>
   </div>
 
@@ -133,6 +133,33 @@
             <button class="btn-opener-copy" id="openerCopyBtn">Copy</button>
           </div>
           <div class="opener-body" id="openerBody"></div>
+        </div>
+      </div>
+
+      <!-- THE EVIDENCE LEDGER — the labels the math scored, auditable and editable -->
+      <div class="result-section" id="section-ledger" style="display:none">
+        <div class="section-label">
+          <span class="section-chip">⬡</span>
+          <span class="section-title">The Evidence Ledger — exactly what the math scored</span>
+        </div>
+        <div class="ledger-wrap">
+          <div class="ledger-scorebar" id="ledgerScorebar">
+            <div class="scorebar-main">
+              <span class="ledger-score-num" id="ledgerScoreNum">—</span>
+              <span class="ledger-score-verdict" id="ledgerScoreVerdict">—</span>
+            </div>
+            <span class="ledger-score-note" id="ledgerScoreNote"></span>
+          </div>
+          <div class="ledger-cache-note" id="ledgerCacheNote" style="display:none"></div>
+          <div class="ledger-grid-label">Requirements — extracted from the job description</div>
+          <div id="ledgerItems"></div>
+          <div class="ledger-grid-label">Strengths — mapped from your resume</div>
+          <div id="ledgerStrengths"></div>
+          <div class="ledger-actions">
+            <button class="btn-demo" id="rewriteReportBtn" style="display:none">↻ Rewrite report with edited labels</button>
+            <button class="btn-demo" id="rerunLabelsBtn">↻ Re-run labels</button>
+          </div>
+          <p class="ledger-footnote">Three independent readings labeled this evidence; the majority decided each label. Edit any label — the score recomputes instantly in code. Same ledger, same number — every time.</p>
         </div>
       </div>
 

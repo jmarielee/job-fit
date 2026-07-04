@@ -233,9 +233,26 @@ letting it hide inside a number.
 
 ## What the model can and can't change
 
-The labeling layer is an LLM, so labels on genuinely ambiguous text can vary
-slightly between runs. These test inputs are written to be unambiguous
-("required," "must hold," "or eligibility to obtain"). What can never vary:
-given the same labels, `scoring.js` produces the same number, the same caps,
-the same gate, and the same recommendation — and all of it is shown work you can
-recompute by hand from [`reference/scoring-rubric.md`](operator/reference/scoring-rubric.md).
+The labeling layer is an LLM, so a single reading of genuinely ambiguous text
+can vary between runs — and near a guardrail threshold, one flipped label is
+the difference between the 45 cap and the 74 ceiling. The operator treats that
+as a design problem, not a disclaimer, and contains it three ways:
+
+1. **Majority vote.** Every live run labels the evidence three times — one
+   temperature-0 anchor extraction plus two independent audits of the same
+   frozen item list. Each score-bearing field takes the majority; ties fall
+   to the anchor. A borderline label has to win two of three readings to
+   reach the math.
+2. **The Evidence Ledger.** Every report carries the exact labels the math
+   scored, one tap open. Items where any voter disagreed are flagged
+   CONTESTED. Every label is editable; an edit re-scores the live report
+   instantly in code and is marked OPERATOR. The human is the voter of last
+   resort — but is never made to wait.
+3. **The cache.** The audited ledger is stored per exact JD+resume pair.
+   Resubmit the same inputs and you get the same ledger — and therefore the
+   same number — until you deliberately click Re-run Labels.
+
+What can never vary: given the same labels, `scoring.js` produces the same
+number, the same caps, the same gate, and the same recommendation — and all
+of it is shown work you can recompute by hand from
+[`reference/scoring-rubric.md`](operator/reference/scoring-rubric.md).
