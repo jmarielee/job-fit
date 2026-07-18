@@ -138,6 +138,5 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('runBtn').addEventListener('click', runBrief);
   document.getElementById('resetBtn').addEventListener('click', resetToInput);
   document.getElementById('openerCopyBtn').addEventListener('click', copyOpener);
-  document.getElementById('rerunLabelsBtn').addEventListener('click', rerunLabels);
-  document.getElementById('rewriteReportBtn').addEventListener('click', writeReport);
+ 
 });
