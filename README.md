@@ -152,3 +152,7 @@ This operator decides *whether and how* to pursue one role. It does not write yo
 ---
 
 *Built by [Jodi Paige-Lee](https://www.linkedin.com/in/jodipl) for Clief Notes Weekly Competition #7. Vanilla JS + Claude API.*
+
+---
+
+© 2026 Jodi Paige-Lee / Interstitial Studios. All rights reserved.
