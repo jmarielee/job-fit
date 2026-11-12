@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.anthropic.com; object-src 'none'; base-uri 'self'; form-action 'self';">
-<title>Adversarial Brief — Will You Actually Get This Job?</title>
+<title>Job-Fit — Should you apply?</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
@@ -18,14 +18,23 @@
     <p class="header-sub">Paste the job description and your resume. Get an honest, unfiltered breakdown of your real chances — where you're strong, where you'll get cut, and exactly what to fix before you apply.</p>
   </div>
 
-  <!-- STAGE 1: RAW INGEST -->
+  <!-- Stage 1: input -->
   <div id="stage-input">
-    <!-- ACCESS KEY TERMINAL GATE -->
+    <!-- Demo: primary action, no key required -->
+    <div class="demo-cta">
+      <button class="btn-demo" id="demoBtn">▶ See a sample report</button>
+      <span class="demo-hint">No API key needed. Runs the real scoring engine on a sample role.</span>
+    </div>
+
+    <p class="own-run-label">Or run it on your own job search</p>
+
+    <!-- API key box -->
     <div class="access-gate" id="accessGate">
       <div class="access-gate-header">
         <span class="access-gate-title">
           <span class="access-status-indicator" id="accessIndicator"></span>
           BYOK — Anthropic API Key
+          <span class="access-mode-chip mode-none" id="modechip">No Key</span>
         </span>
         <span class="trust-note" style="margin:0" id="accessStatusLabel">No key saved</span>
       </div>
@@ -33,11 +42,6 @@
       <div class="access-input-wrap">
         <input type="password" class="access-input" id="apiKeyInput" placeholder="sk-ant-…">
         <button class="btn-access-save" id="saveKeyBtn">Save Key</button>
-      </div>
-      <div class="demo-row">
-        <button class="btn-demo" id="demoBtn">▶ Load Demo</button>
-        <span class="access-mode-chip mode-none" id="modechip">No Key</span>
-        <span class="demo-hint">See full analysis sample</span>
       </div>
     </div>
 
@@ -64,7 +68,7 @@
     <div id="errorBox"><div class="error-inner" id="errorText"></div></div>
   </div>
 
-  <!-- STAGE 2: PROCESS SCANNING -->
+  <!-- Stage 2: loading -->
   <div id="stage-loading">
     <div class="loading-screen">
       <div class="loading-ring-wrap">
@@ -78,7 +82,7 @@
     </div>
   </div>
 
-  <!-- STAGE 3: INTERCEPT DOSSIER -->
+  <!-- Stage 3: report -->
   <div id="stage-result">
     <div class="stage-result-nav">
       <button class="btn-reset" id="resetBtn">← Run a New Analysis</button>
@@ -86,7 +90,7 @@
 
     <div id="results">
 
-      <!-- RAW SCORE METRICS -->
+      <!-- Score summary -->
       <div class="result-section" id="section-hero">
         <p class="trust-note">Your Job Fit Report</p>
         <div class="score-hero" id="scoreHero">
@@ -136,7 +140,7 @@
         </div>
       </div>
 
-      <!-- THE EVIDENCE LEDGER — the labels the math scored, auditable and editable -->
+      <!-- Evidence Ledger: the labels the math scored, reviewable and editable -->
       <div class="result-section" id="section-ledger" style="display:none">
         <div class="section-label">
           <span class="section-chip">⬡</span>
@@ -163,7 +167,7 @@
         </div>
       </div>
 
-      <!-- COMMITTEE READ -->
+      <!-- Committee summary -->
       <div class="result-section" id="section-committee-read" style="display:none">
         <div class="section-label">
           <span class="section-chip">⬡</span>
@@ -175,7 +179,7 @@
         </div>
       </div>
 
-      <!-- CALIBRATION COMPARISON -->
+      <!-- Benchmark comparison -->
       <div class="result-section" id="section-benchmark" style="display:none">
         <div class="section-label">
           <span class="section-chip">01</span>
@@ -225,7 +229,7 @@
         </div>
       </div>
 
-      <!-- TARGET SPECIFIC REALITIES -->
+      <!-- Company section -->
       <div class="result-section" id="section-company" style="display:none">
         <div class="section-label">
           <span class="section-chip">02</span>
@@ -246,7 +250,7 @@
         </div>
       </div>
 
-      <!-- STRATEGIC ANALYSIS -->
+      <!-- Strengths and weak spots -->
       <div class="result-section" id="section01">
         <div class="section-label">
           <span class="section-chip">03</span>
@@ -264,7 +268,7 @@
         </div>
       </div>
 
-      <!-- SIGNAL DEFICITS -->
+      <!-- Gaps -->
       <div class="result-section" id="section-signals" style="display:none">
         <div class="section-label">
           <span class="section-chip">04</span>
@@ -273,7 +277,7 @@
         <div class="signals-list" id="signalDeficits"></div>
       </div>
 
-      <!-- PIPELINE EXCLUSIONS -->
+      <!-- Interview stage risks -->
       <div class="result-section" id="section02">
         <div class="section-label">
           <span class="section-chip">05</span>
@@ -282,7 +286,7 @@
         <div class="risk-stages" id="riskStages"></div>
       </div>
 
-      <!-- STRUCTURAL PROFILE SHAPE RISK -->
+      <!-- Profile shape risk -->
       <div class="result-section" id="section-shaperisk" style="display:none">
         <div class="shaperisk-card" id="shapeRiskCard">
           <div class="shaperisk-header">
@@ -296,7 +300,7 @@
         </div>
       </div>
 
-      <!-- INDIVIDUAL COMMITTEE PROFILE -->
+      <!-- Evaluator cards -->
       <div class="result-section" id="section03">
         <div class="section-label">
           <span class="section-chip">06</span>
@@ -305,7 +309,7 @@
         <div class="eval-grid" id="evaluators"></div>
       </div>
 
-      <!-- HIGHEST-LEVERAGE MITIGATION TACTICS -->
+      <!-- Priority actions -->
       <div class="result-section" id="section-actions">
         <div class="priority-block">
           <div class="priority-header">
